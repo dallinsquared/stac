@@ -17,15 +17,16 @@
 #define MINUS 12
 #define MULT 13
 #define DIV 14
-#define RSHIFT 15
-#define LSHIFT 16 
-#define LESS 17
-#define GREAT 18
-#define EQL 19
-#define EMIT 20
-#define AND 21
-#define OR 22
-#define XOR 23
+#define MOD 15
+#define RSHIFT 16
+#define LSHIFT 17 
+#define LESS 18
+#define GREAT 19
+#define EQL 20
+#define EMIT 21
+#define AND 22
+#define OR 23
+#define XOR 24
 
 #define DSIZE 500
 #define RSSIZE 50
@@ -40,6 +41,7 @@
 #define TORS disk[*rsp]
 #define DROP --(*tosp)
 #define RDROP --(*rsp)
+#define TWOLEVEL(EFFECT) NTOS=EFFECT;DROP;NEXT
 
 const int pack = sizeof int / sizeof char;
 const int diff = sizeof int - (sizeof char * pack);
@@ -85,7 +87,7 @@ void intern(int x) {
 }
 
 void init() {
-	for(int i = 0; i < 24; i++) {
+	for(int i = DOCOL; i <= XOR; i++) {
 		intern(i);
 	}
 }
@@ -139,7 +141,7 @@ void execute(int x) {
 		NEXT;
 		break;
 	case LIT:
-		PUSH ++IP;
+		PUSH disk[++IP];
 		NEXT;
 		break;
 	case PDROP:
@@ -153,4 +155,45 @@ void execute(int x) {
 		NEXT;
 		break;
 	case ROT:
+		w = TOS;
+		TOS = disk[(*tosp)+2];
+		disk[(*tosp)+2] = NTOS;
+		NTOS = w;
+		NEXT;
+		break;
+	case PLUS:
+		TWOLEVEL(TOS + NTOS);
+		break;
+	case MINUS:
+		TWOLEVEL(NTOS - TOS);
+		break;
+	case MULT:
+		TWOLEVEL(TOS * NTOS);
+		break;
+	case DIV:
+		TWOLEVEL(NTOS / TOS);
+		break;
+	case MOD:
+		TWOLEVEL(NTOS % TOS);
+		break;
+	case RSHIFT:
+		TWOLEVEL(NTOS >> TOS);
+		break;
+	case LSHIFT:
+		TWOLEVEL(NTOS << TOS);
+		break;
+	case LESS:
+		TWOLEVEL(NTOS < TOS);
+		break;
+	case GREAT:
+		TWOLEVEL(NTOS > TOS);
+		break;
+	case EQL:
+		TWOLEVEL(NTOS == TOS);
+		break;
+	case EMIT:
+		putchar(TOS);
+		DROP;
+		NEXT;
+		break;
 
