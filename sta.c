@@ -11,24 +11,25 @@
 #define PEEK 6
 #define POKE 7
 #define LIT  8
-#define PDROP 9
-#define SWAP 10
-#define ROT  11
-#define PLUS 12
-#define MINUS 13
-#define MULT 14
-#define DIV 15
-#define MOD 16
-#define RSHIFT 17
-#define LSHIFT 18 
-#define LESS 19
-#define GREAT 20
-#define EQL 21
-#define EMIT 22
-#define AND 23
-#define OR 24
-#define XOR 25
-#define NOT 26
+#define BRANCH 9
+#define PDROP 10
+#define SWAP 11
+#define ROT  12
+#define PLUS 13
+#define MINUS 14
+#define MULT 15
+#define DIV 16
+#define MOD 17
+#define RSHIFT 18
+#define LSHIFT 19 
+#define LESS 20
+#define GREAT 21
+#define EQL 22
+#define EMIT 23
+#define AND 24
+#define OR 25
+#define XOR 26
+#define NOT 27
 
 #define DSIZE 500
 #define RSSIZE 50
@@ -125,6 +126,12 @@ void finit(){
 	enter(PEEK);
 	enter(POKE);
 	enter(EXIT);
+	//computebranch
+	intern(DOCOL, 0);
+	enter(LIT);
+	enter(1);   //figure this out!!!
+	enter(MINUS);
+
 }
 
 
@@ -184,6 +191,10 @@ void execute(int x) {
 		PUSH disk[++IP];
 		NEXT;
 		break;
+	case BRANCH:
+		TORS = TORS+disk[++IP];
+		NEXT;
+		break;
 	case PDROP:
 		DROP;
 		NEXT;
@@ -227,13 +238,13 @@ void execute(int x) {
 		NEXT;
 		break;
 	case LESS:
-		TWOLEVEL(NTOS < TOS ? 0 : -1);
+		TWOLEVEL(NTOS < TOS ? -1 : 0);
 		break;
 	case GREAT:
-		TWOLEVEL(NTOS > TOS ? 0 : -1);
+		TWOLEVEL(NTOS > TOS ? -1 : 0);
 		break;
 	case EQL:
-		TWOLEVEL(NTOS == TOS ? 0 : -1);
+		TWOLEVEL(NTOS == TOS ? -1 : 0);
 		break;
 	case EMIT:
 		putchar(TOS);
