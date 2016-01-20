@@ -3,30 +3,32 @@
 #include <string.h>
 
 #define DOCOL 0
-#define KEY 1
-#define WORD 2 
-#define FIND 3 
-#define EXIT 4
-#define PEEK 5
-#define POKE 6
-#define LIT  7
-#define PDROP 8
-#define SWAP 9
-#define ROT  10
-#define PLUS 11
-#define MINUS 12
-#define MULT 13
-#define DIV 14
-#define MOD 15
-#define RSHIFT 16
-#define LSHIFT 17 
-#define LESS 18
-#define GREAT 19
-#define EQL 20
-#define EMIT 21
-#define AND 22
-#define OR 23
-#define XOR 24
+#define IMMEDIATE 1
+#define KEY 2
+#define WORD 3 
+#define FIND 4 
+#define EXIT 5
+#define PEEK 6
+#define POKE 7
+#define LIT  8
+#define PDROP 9
+#define SWAP 10
+#define ROT  11
+#define PLUS 12
+#define MINUS 13
+#define MULT 14
+#define DIV 15
+#define MOD 16
+#define RSHIFT 17
+#define LSHIFT 18 
+#define LESS 19
+#define GREAT 20
+#define EQL 21
+#define EMIT 22
+#define AND 23
+#define OR 24
+#define XOR 25
+#define NOT 26
 
 #define DSIZE 500
 #define RSSIZE 50
@@ -39,7 +41,7 @@
 #define NTOS disk[(*tosp)+1]
 #define NTORS disk[(*rsp)-1]
 #define TORS disk[*rsp]
-#define DROP --(*tosp)
+#define DROP ++(*tosp)
 #define RDROP --(*rsp)
 #define TWOLEVEL(EFFECT) NTOS=EFFECT;DROP;NEXT
 
@@ -52,7 +54,7 @@ int disk[DSIZE] = {3, DSIZE-(RSSIZE+STSIZE+1), DSIZE-1},
 
 int scant(char c, char *s) {
 	for( int i = 0; ; s++, i++) {
-		*s = getchar;
+		*s = getchar();
 		if (*s == c) {
 			*s = '\0';
 			return i;
@@ -67,6 +69,9 @@ int scant(char c, char *s) {
 				return i;
 			}
 		}
+		if (*s == EOF){
+			exit(0);
+		}
 	}
 }
 
@@ -74,7 +79,7 @@ void enter(int x){
 	disk[(*dict)++] = x;
 }
 
-void intern(int x) {
+void intern(int x, int imm) {
 	enter(link);
 	link = *dict-1;
 	w = *dict;
@@ -83,14 +88,45 @@ void intern(int x) {
 	int ilen = slen/pack + (slen%pack) ? 1 : 0;
 	disk[w] = ilen;
 	*dict += ilen;
+	enter(imm);
 	enter(x);
 }
 
-void init() {
-	for(int i = DOCOL; i <= XOR; i++) {
-		intern(i);
+void pinit() {
+	for(int i = DOCOL; i <= NOT; i++) {
+		intern(i, i == IMMEDIATE);
 	}
 }
+void finit(){
+	//flag for compiling
+	intern(DOCOL, 0);
+	enter(LIT);
+	enter(0);
+	enter(EXIT);
+	//reference to return stack
+	intern(DOCOL, 0);
+	enter(LIT);
+	enter(1);
+	enter(EXIT);
+	//reference to dictionary
+	intern(DOCOL, 0);
+	enter(LIT);
+	enter(0);
+	enter(EXIT);
+	//reference to stack
+	intern(DOCOL, 0);
+	enter(LIT);
+	enter(2);
+	enter(EXIT);
+	//compile TOS
+	intern(DOCOL, 0);
+	enter(LIT);
+	enter(0);
+	enter(PEEK);
+	enter(POKE);
+	enter(EXIT);
+}
+
 
 void execute(int x) {
 	switch x {
@@ -98,6 +134,10 @@ void execute(int x) {
 		w = ++IP;
 		RPUSH ++IP;
 		IP = disk[w];
+		break;
+	case IMMEDIATE:
+		disk[link+disk[link+1]+2] = 1;
+		NEXT;
 		break;
 	case KEY:
 		PUSH getchar();
@@ -119,7 +159,7 @@ void execute(int x) {
 			w = disk[w];
 		}
 		if !w {
-			PUSH 0;
+			PUSH -1;
 		} else {
 			TOS = w + (dict[w+1]);
 			PUSH dict[TOS+1];
@@ -177,23 +217,79 @@ void execute(int x) {
 		TWOLEVEL(NTOS % TOS);
 		break;
 	case RSHIFT:
-		TWOLEVEL(NTOS >> TOS);
+		NTOS >>= TOS;
+		DROP;
+		NEXT;
 		break;
 	case LSHIFT:
-		TWOLEVEL(NTOS << TOS);
+		NTOS <<= TOS;
+		DROP;
+		NEXT;
 		break;
 	case LESS:
-		TWOLEVEL(NTOS < TOS);
+		TWOLEVEL(NTOS < TOS ? 0 : -1);
 		break;
 	case GREAT:
-		TWOLEVEL(NTOS > TOS);
+		TWOLEVEL(NTOS > TOS ? 0 : -1);
 		break;
 	case EQL:
-		TWOLEVEL(NTOS == TOS);
+		TWOLEVEL(NTOS == TOS ? 0 : -1);
 		break;
 	case EMIT:
 		putchar(TOS);
 		DROP;
 		NEXT;
 		break;
+	case AND:
+		NTOS &= TOS;
+		DROP;
+		NEXT;
+		break;
+	case OR:
+		NTOS |= TOS;
+		DROP;
+		NEXT;
+		break;
+	case XOR:
+		NTOS ^= TOS;
+		DROP;
+		NEXT;
+	case NOT:
+		TOS = ~TOS;
+		NEXT;
+		break;
+	}
+}
 
+void sanitycheck() {
+	for (int i = 0; i < 3; i++) {
+		if !(0 <= disk[i] && disk[i] < DSIZE){
+			printf("ERROR: reference out of bounds: disk[%d]\n", i);
+			exit(1);
+		}
+	}
+	if !(*dict < DSIZE-RSSIZE-STSIZE) {
+		printf("ERROR: out of dictionary space!\n");
+		exit(1);
+	}
+	if !(DSIZE-RSSIZE-STSIZE <= *rsp) {
+		printf("ERROR: improper return stack size!\n");
+		exit(1);
+	}
+	if !(DSIZE-RSSIZE-STSIZE < *tosp) {
+		printf("ERROR: improper stack size!\n");
+		exit(1);
+	}
+	if (*rsp > *tosp) {
+		printf("ERROR: stack intersection!\n");
+		exit(1);
+	}
+}
+
+void cycle() {
+	sanitycheck();
+	execute(disk[IP]);
+}
+
+void main() {
+	init()
