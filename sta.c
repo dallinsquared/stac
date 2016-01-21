@@ -26,10 +26,11 @@
 #define GREAT 21
 #define EQL 22
 #define EMIT 23
-#define AND 24
-#define OR 25
-#define XOR 26
-#define NOT 27
+#define NEG 24
+#define AND 25
+#define OR 26
+#define XOR 27
+#define NOT 28
 
 #define DSIZE 500
 #define RSSIZE 50
@@ -128,9 +129,16 @@ void finit(){
 	enter(EXIT);
 	//computebranch
 	intern(DOCOL, 0);
+	int compbran = *dict - 1;
 	enter(LIT);
-	enter(1);   //figure this out!!!
+	enter(1);  
 	enter(MINUS);
+	enter(MULT);
+	enter(LIT);
+	enter(1);
+	enter(MINUS);
+	enter(NEG);
+	enter(EXIT);
 
 }
 
@@ -251,6 +259,9 @@ void execute(int x) {
 		DROP;
 		NEXT;
 		break;
+	case NEG:
+		TOS = ~TOS + 1;
+		NEXT;
 	case AND:
 		NTOS &= TOS;
 		DROP;
