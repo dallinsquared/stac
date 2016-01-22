@@ -11,26 +11,27 @@
 #define PEEK 6
 #define POKE 7
 #define LIT  8
-#define BRANCH 9
-#define PDROP 10
-#define SWAP 11
-#define ROT  12
-#define PLUS 13
-#define MINUS 14
-#define MULT 15
-#define DIV 16
-#define MOD 17
-#define RSHIFT 18
-#define LSHIFT 19 
-#define LESS 20
-#define GREAT 21
-#define EQL 22
-#define EMIT 23
-#define NEG 24
-#define AND 25
-#define OR 26
-#define XOR 27
-#define NOT 28
+#define PUSNXT 9
+#define BRANCH 10
+#define PDROP 11
+#define SWAP 12
+#define ROT  13
+#define PLUS 14
+#define MINUS 15
+#define MULT 16
+#define DIV 17
+#define MOD 18
+#define RSHIFT 19
+#define LSHIFT 20 
+#define LESS 21
+#define GREAT 22
+#define EQL 23
+#define EMIT 24
+#define NEG 25
+#define AND 26
+#define OR 27
+#define XOR 28
+#define NOT 29
 
 #define DSIZE 500
 #define RSSIZE 50
@@ -199,6 +200,9 @@ void execute(int x) {
 		PUSH disk[++IP];
 		NEXT;
 		break;
+	case PUSNXT:
+		PUSH disk[NTORS++];
+		NEXT;
 	case BRANCH:
 		TORS = TORS+disk[++IP];
 		NEXT;
