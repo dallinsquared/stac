@@ -46,14 +46,17 @@
 #define TORS disk[*rsp]
 #define DROP ++(*tosp)
 #define RDROP --(*rsp)
+
 #define TWOLEVEL(EFFECT) NTOS=EFFECT;DROP;NEXT
+#define COMPPRIM(PRIM) enter(primaddr[PRIM])
+#define COLON(NAME) intern(DOCOL, 0);int NAME=*dict-1
 
 const int pack = sizeof int / sizeof char;
 const int diff = sizeof int - (sizeof char * pack);
 
 int disk[DSIZE] = {3, DSIZE-(RSSIZE+STSIZE+1), DSIZE-1},
     *dict = disk, *rsp = disk+1, *tosp = disk+2,
-    link = 0, w, IP;
+    link = 0, w, IP, primaddr[NOT+1];
 
 int scant(char c, char *s) {
 	for( int i = 0; ; s++, i++) {
@@ -98,48 +101,65 @@ void intern(int x, int imm) {
 void pinit() {
 	for(int i = DOCOL; i <= NOT; i++) {
 		intern(i, i == IMMEDIATE);
+		primaddr[i] = *dict - 1;
 	}
 }
 void finit(){
 	//flag for compiling
-	intern(DOCOL, 0);
-	enter(LIT);
+	COLON(compileq);
+	COMPPRIM(LIT);
+	int compflag = *dict;
 	enter(0);
-	enter(EXIT);
-	//reference to return stack
-	intern(DOCOL, 0);
-	enter(LIT);
-	enter(1);
-	enter(EXIT);
-	//reference to dictionary
-	intern(DOCOL, 0);
-	enter(LIT);
+	COMPPRIM(EXIT);
+	//enter compile mode
+	COLON(compilemode); 
+	COMPPRIM(LIT);
+	enter(-1);
+	COMPPRIM(LIT);
+	enter(compflag);
+	COMPPRIM(POKE);
+	COMPPRIM(EXIT);
+	//exit compile mode
+	COLON(interpmode);
+	COMPPRIM(LIT);
 	enter(0);
-	enter(EXIT);
-	//reference to stack
-	intern(DOCOL, 0);
-	enter(LIT);
-	enter(2);
-	enter(EXIT);
+	COMPPRIM(LIT);
+	enter(compflag);
+	COMPPRIM(POKE);
+	COMPPRIM(EXIT);
 	//compile TOS
-	intern(DOCOL, 0);
-	enter(LIT);
+	COLON(comptos);
+	COMPPRIM(LIT);
 	enter(0);
-	enter(PEEK);
-	enter(POKE);
-	enter(EXIT);
+	COMPPRIM(PEEK);
+	COMPPRIM(POKE);
+	COMPPRIM(EXIT);
 	//computebranch
-	intern(DOCOL, 0);
-	int compbran = *dict - 1;
-	enter(LIT);
+	COLON(compbran);
+	COMPPRIM(LIT);
 	enter(1);  
-	enter(MINUS);
-	enter(MULT);
-	enter(LIT);
+	COMPPRIM(MINUS);
+	COMPPRIM(AND);
+	COMPPRIM(LIT);
 	enter(1);
-	enter(MINUS);
-	enter(NEG);
-	enter(EXIT);
+	COMPPRIM(PLUS);
+	COMPPRIM(EXIT);
+	//turn a nonzero value to -1, and keep zero values
+	COLON(logify);
+	COMPPRIM(LIT);
+	enter(0);
+	COMPPRIM(EQL);
+	COMPPRIM(NOT);
+	COMPPRIM(EXIT);
+	//branch if false
+	COLON(notbranch);
+	COMPPRIM(LIT);  //I could have used logify and then not, but there's an extra 'not' in logify, so for efficiency I just implemented it inline.
+	enter(0);
+	COMPPRIM(EQL);
+	COMPPRIM(PUSNXT);
+	enter(compbran);
+	//add this branch to the return value and store it back on the return stack
+
 
 }
 
@@ -197,7 +217,7 @@ void execute(int x) {
 		NEXT;
 		break;
 	case LIT:
-		PUSH disk[++IP];
+		PUSH disk[NTORS++];
 		NEXT;
 		break;
 	case PUSNXT:
