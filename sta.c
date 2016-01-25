@@ -127,6 +127,12 @@ void finit(){
 	enter(compflag);
 	COMPPRIM(POKE);
 	COMPPRIM(EXIT);
+	//push the address of the next open cell to the stack
+	COLON(here);
+	COMPPRIM(LIT);
+	enter(0);
+	COMPPRIM(PEEK);
+	COMPPRIM(EXIT);
 	//compile TOS
 	COLON(comptos);
 	COMPPRIM(LIT);
@@ -157,8 +163,19 @@ void finit(){
 	enter(0);
 	COMPPRIM(EQL);
 	COMPPRIM(PUSNXT);
-	enter(compbran);
-	//add this branch to the return value and store it back on the return stack
+	enter(compbran); //compute branch value depending on the boolean found on the stack.
+	COMPPRIM(LIT);	//add the branch value to the return value and store it back on the return stack, overwriting the old value.
+	enter(1);
+	COMPPRIM(PEEK);
+	COMPPRIM(PEEK);
+	COMPPRIM(PLUS);
+	COMPPRIM(LIT);
+	COMPPRIM(1);
+	COMPPRIM(PEEK);
+	COMPPRIM(POKE);
+	COMPPRIM(EXIT);
+	//if
+	intern(DOCOL, 1);
 
 
 }
