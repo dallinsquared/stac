@@ -170,12 +170,27 @@ void finit(){
 	COMPPRIM(PEEK);
 	COMPPRIM(PLUS);
 	COMPPRIM(LIT);
-	COMPPRIM(1);
+	enter(1);
 	COMPPRIM(PEEK);
 	COMPPRIM(POKE);
 	COMPPRIM(EXIT);
-	//if
+	//peek xt
+	COLON(peekxt);
+	COMPPRIM(WORD);
+	COMPPRIM(FIND);
+	COMPPRIM(EXIT);
+	//interpret
 	intern(DOCOL, 1);
+	int interpret = *dict-1;
+	enter(peekxt);
+	COMPPRIM(DUP);
+	COMPPRIM(LIT);
+	enter(1);
+	COMPPRIM(EQL);
+	enter(notbranch);
+	int intifpatch = *dict;
+	enter(0);   //figure out how to handle nonexistent words in interpret mode
+
 
 
 }
@@ -212,7 +227,7 @@ void execute(int x) {
 			w = disk[w];
 		}
 		if !w {
-			PUSH -1;
+			PUSH 1;
 		} else {
 			TOS = w + (dict[w+1]);
 			PUSH dict[TOS+1];
