@@ -14,24 +14,25 @@
 #define PUSNXT 9
 #define BRANCH 10
 #define PDROP 11
-#define SWAP 12
-#define ROT  13
-#define PLUS 14
-#define MINUS 15
-#define MULT 16
-#define DIV 17
-#define MOD 18
-#define RSHIFT 19
-#define LSHIFT 20 
-#define LESS 21
-#define GREAT 22
-#define EQL 23
-#define EMIT 24
-#define NEG 25
-#define AND 26
-#define OR 27
-#define XOR 28
-#define NOT 29
+#define TOR 12
+#define SWAP 13
+#define ROT  14
+#define PLUS 15
+#define MINUS 16
+#define MULT 17
+#define DIV 18
+#define MOD 19
+#define RSHIFT 20
+#define LSHIFT 21 
+#define LESS 22
+#define GREAT 23
+#define EQL 24
+#define EMIT 25
+#define NEG 26
+#define AND 27
+#define OR 28
+#define XOR 29
+#define NOT 30
 
 #define DSIZE 500
 #define RSSIZE 50
@@ -100,7 +101,7 @@ void intern(int x, int imm) {
 
 void pinit() {
 	for(int i = DOCOL; i <= NOT; i++) {
-		intern(i, i == IMMEDIATE);
+		intern(i, i == IMMEDIATE ? -1 : 0);
 		primaddr[i] = *dict - 1;
 	}
 }
@@ -180,19 +181,32 @@ void finit(){
 	COMPPRIM(FIND);
 	COMPPRIM(EXIT);
 	//interpret
-	intern(DOCOL, 1);
+	intern(DOCOL, -1);
 	int interpret = *dict-1;
 	enter(peekxt);
 	COMPPRIM(DUP);
 	COMPPRIM(LIT);
 	enter(1);
 	COMPPRIM(EQL);
+	COMPPRIM(NOT);
 	enter(notbranch);
-	int intifpatch = *dict;
+	int intfounbranch = *dict;
 	enter(0);   //figure out how to handle nonexistent words in interpret mode
+	COMPPRIM(NOT);
+	enter(notbranch);
+	int intimmpatch = *dict;
+	COMPPRIM(TOR);
+	int intrecur = *dict;
+	dict[intfounbranch] = intrecur - intfounbranch;
+	dict[intimmpatch] = intrecur - intimmpatch;
+	COMPPRIM(LIT);
+	enter(interpret);
+	COMPPRIM(LIT);
+	enter(1);
+	COMPPRIM(PEEK);
+	COMPPRIM(POKE);
 
-
-
+	
 }
 
 
@@ -263,6 +277,10 @@ void execute(int x) {
 		DROP;
 		NEXT;
 		break;
+	case TOR:
+		RPUSH TOS;
+		DROP;
+		NEXT;
 	case SWAP:
 		w = TOS;
 		TOS = NTOS;
