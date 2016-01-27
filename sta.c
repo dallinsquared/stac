@@ -15,24 +15,25 @@
 #define BRANCH 10
 #define PDROP 11
 #define TOR 12
-#define SWAP 13
-#define ROT  14
-#define PLUS 15
-#define MINUS 16
-#define MULT 17
-#define DIV 18
-#define MOD 19
-#define RSHIFT 20
-#define LSHIFT 21 
-#define LESS 22
-#define GREAT 23
-#define EQL 24
-#define EMIT 25
-#define NEG 26
-#define AND 27
-#define OR 28
-#define XOR 29
-#define NOT 30
+#define FROMR 13
+#define SWAP 14
+#define ROT  15
+#define PLUS 16
+#define MINUS 17
+#define MULT 18
+#define DIV 19
+#define MOD 20
+#define RSHIFT 21
+#define LSHIFT 22 
+#define LESS 23
+#define GREAT 24
+#define EQL 25
+#define EMIT 26
+#define NEG 27
+#define AND 28
+#define OR 29
+#define XOR 30
+#define NOT 31
 
 #define DSIZE 500
 #define RSSIZE 50
@@ -180,9 +181,16 @@ void finit(){
 	COMPPRIM(WORD);
 	COMPPRIM(FIND);
 	COMPPRIM(EXIT);
+	//execute xt
+	COLON(excut);
+	COMPPRIM(TOR);
+	COMPPRIM(EXIT);
 	//interpret
 	intern(DOCOL, -1);
 	int interpret = *dict-1;
+	enter(*dict+1);
+	int intloop = *dict;
+	COMPPRIM(DOCOL);
 	enter(peekxt);
 	COMPPRIM(DUP);
 	COMPPRIM(LIT);
@@ -195,16 +203,14 @@ void finit(){
 	COMPPRIM(NOT);
 	enter(notbranch);
 	int intimmpatch = *dict;
-	COMPPRIM(TOR);
+	enter(0);
+	enter(excut);
 	int intrecur = *dict;
 	dict[intfounbranch] = intrecur - intfounbranch;
 	dict[intimmpatch] = intrecur - intimmpatch;
-	COMPPRIM(LIT);
-	enter(interpret);
-	COMPPRIM(LIT);
-	enter(1);
-	COMPPRIM(PEEK);
-	COMPPRIM(POKE);
+	COMPPRIM(FROMR);
+	COMPPRIM(DROP);
+	enter(intloop);
 
 	
 }
@@ -280,6 +286,10 @@ void execute(int x) {
 	case TOR:
 		RPUSH TOS;
 		DROP;
+		NEXT;
+	case FROMR:
+		PUSH TORS;
+		RDROP;
 		NEXT;
 	case SWAP:
 		w = TOS;
