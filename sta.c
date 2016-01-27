@@ -190,7 +190,7 @@ void finit(){
 	int interpret = *dict-1;
 	enter(*dict+1);
 	int intloop = *dict;
-	COMPPRIM(DOCOL);
+	enter(DOCOL);
 	enter(peekxt);
 	COMPPRIM(DUP);
 	COMPPRIM(LIT);
