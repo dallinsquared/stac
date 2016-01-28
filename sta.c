@@ -53,8 +53,8 @@
 #define COMPPRIM(PRIM) enter(primaddr[PRIM])
 #define COLON(NAME) intern(DOCOL, 0);int NAME=*dict-1
 
-const int pack = sizeof int / sizeof char;
-const int diff = sizeof int - (sizeof char * pack);
+int pack;
+int diff;
 
 int disk[DSIZE] = {3, DSIZE-(RSSIZE+STSIZE+1), DSIZE-1},
     *dict = disk, *rsp = disk+1, *tosp = disk+2,
@@ -68,7 +68,7 @@ int scant(char c, char *s) {
 			return i;
 		}
 		if ((int) c == 127) {
-			switch *s {
+			switch (*s) {
 			case ' ':
 			case '\t':
 			case '\n':
@@ -187,19 +187,16 @@ void finit(){
 	COMPPRIM(EXIT);
 	//interpret
 	intern(DOCOL, -1);
-	int interpret = *dict-1;
-	enter(*dict+1);
-	int intloop = *dict;
-	enter(DOCOL);
+	int intloop = *dict-1;
 	enter(peekxt);
-	COMPPRIM(DUP);
+	COMPPRIM(DUP); //dup not primitive...
 	COMPPRIM(LIT);
 	enter(1);
 	COMPPRIM(EQL);
 	COMPPRIM(NOT);
 	enter(notbranch);
 	int intfounbranch = *dict;
-	enter(0);   //figure out how to handle nonexistent words in interpret mode
+	enter(0); 
 	COMPPRIM(NOT);
 	enter(notbranch);
 	int intimmpatch = *dict;
@@ -211,20 +208,46 @@ void finit(){
 	COMPPRIM(FROMR);
 	COMPPRIM(DROP);
 	enter(intloop);
+	//compile
+	COLON(comploop);
+	enter(peekxt);
+	COMPPRIM(DUP);
+	COMPPRIM(LIT);
+	enter(1);
+	COMPPRIM(EQL);
+	COMPPRIM(NOT);
+	enter(notbranch);
+	int compfounpatch = *dict;
+	enter(0);
+	enter(notbranch);
+	int compnotimmbran = *dict;
+	enter(0);
+	enter(excut);
+	COMPPRIM(BRANCH);
+	int compimmelse = *dict;
+	enter(0);
+	dict[compnotimmbran] = compimmelse - compnotimmbran + 1;
+	enter(comptos);
+	int comprecur = *dict;
+	dict[compfounpatch] = comprecur - compfounpatch;
+	dict[compimmelse] = comprecur - compimmelse;
+	COMPPRIM(FROMR);
+	COMPPRIM(DROP);
+	enter(comploop);
 
-	
+	IP=intloop;
 }
 
 
 void execute(int x) {
-	switch x {
+	switch (x) {
 	case DOCOL:
 		w = ++IP;
 		RPUSH ++IP;
 		IP = disk[w];
 		break;
 	case IMMEDIATE:
-		disk[link+disk[link+1]+2] = 1;
+		disk[link+disk[link+1]+2] = -1;
 		NEXT;
 		break;
 	case KEY:
@@ -246,7 +269,7 @@ void execute(int x) {
 		while (strcmp((char *)(disk+TOS), (char *)(disk+w+1))) {
 			w = disk[w];
 		}
-		if !w {
+		if (!w) {
 			PUSH 1;
 		} else {
 			TOS = w + (dict[w+1]);
@@ -369,20 +392,20 @@ void execute(int x) {
 
 void sanitycheck() {
 	for (int i = 0; i < 3; i++) {
-		if !(0 <= disk[i] && disk[i] < DSIZE){
+		if (!(0 <= disk[i] && disk[i] < DSIZE)){
 			printf("ERROR: reference out of bounds: disk[%d]\n", i);
 			exit(1);
 		}
 	}
-	if !(*dict < DSIZE-RSSIZE-STSIZE) {
+	if (!(*dict < DSIZE-RSSIZE-STSIZE)) {
 		printf("ERROR: out of dictionary space!\n");
 		exit(1);
 	}
-	if !(DSIZE-RSSIZE-STSIZE <= *rsp) {
+	if (!(DSIZE-RSSIZE-STSIZE <= *rsp)) {
 		printf("ERROR: improper return stack size!\n");
 		exit(1);
 	}
-	if !(DSIZE-RSSIZE-STSIZE < *tosp) {
+	if (!(DSIZE-RSSIZE-STSIZE < *tosp)) {
 		printf("ERROR: improper stack size!\n");
 		exit(1);
 	}
@@ -398,4 +421,11 @@ void cycle() {
 }
 
 void main() {
-	init()
+	pack = sizeof (int) / sizeof (char);
+	diff = sizeof (int) - (sizeof (char) * pack);
+	pinit();
+	finit();
+	while(1) {
+		cycle();
+	}
+}
