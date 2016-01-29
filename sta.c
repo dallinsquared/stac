@@ -16,20 +16,20 @@
 #define PDROP 11
 #define TOR 12
 #define FROMR 13
-#define SWAP 14
-#define ROT  15
-#define PLUS 16
-#define MINUS 17
-#define MULT 18
-#define DIV 19
-#define MOD 20
+#define DUP 14
+#define SWAP 15
+#define ROT  16
+#define PLUS 17
+#define MINUS 18
+#define MULT 19
+#define DIV 20
 #define RSHIFT 21
 #define LSHIFT 22 
 #define LESS 23
 #define GREAT 24
 #define EQL 25
 #define EMIT 26
-#define NEG 27
+#define ATOI 27
 #define AND 28
 #define OR 29
 #define XOR 30
@@ -52,14 +52,16 @@
 #define TWOLEVEL(EFFECT) NTOS=EFFECT;DROP;NEXT
 #define COMPPRIM(PRIM) enter(primaddr[PRIM])
 #define COLON(NAME) intern(DOCOL, 0);int NAME=*dict-1
+#define IF 
 
 int pack;
 int diff;
 
 int disk[DSIZE] = {3, DSIZE-(RSSIZE+STSIZE+1), DSIZE-1},
     *dict = disk, *rsp = disk+1, *tosp = disk+2,
-    link = 0, w, IP, primaddr[NOT+1];
+    *link = disk+3, w, IP, primaddr[NOT+1];
 
+char itoabuf[10] = {'\0'};
 int scant(char c, char *s) {
 	for( int i = 0; ; s++, i++) {
 		*s = getchar();
@@ -88,8 +90,8 @@ void enter(int x){
 }
 
 void intern(int x, int imm) {
-	enter(link);
-	link = *dict-1;
+	enter(*link);
+	*link = *dict-1;
 	w = *dict;
 	enter(0);
 	int slen = scant((char) 127, (char *)(disk+(*dict)));
@@ -178,6 +180,8 @@ void finit(){
 	COMPPRIM(EXIT);
 	//peek xt
 	COLON(peekxt);
+	COMPPRIM(LIT);
+	enter(127);
 	COMPPRIM(WORD);
 	COMPPRIM(FIND);
 	COMPPRIM(EXIT);
@@ -202,6 +206,9 @@ void finit(){
 	int intimmpatch = *dict;
 	enter(0);
 	enter(excut);
+	COMPPRIM(BRANCH);
+	int intpushint = *dict;
+
 	int intrecur = *dict;
 	dict[intfounbranch] = intrecur - intfounbranch;
 	dict[intimmpatch] = intrecur - intimmpatch;
@@ -238,6 +245,25 @@ void finit(){
 	IP=intloop;
 }
 
+char* itoa(int i){
+	char *p = itoabuf;
+	if(i<0){
+		*p++ = '-';
+		i *= -1;
+	}
+	int shifter = i;
+	do{ //Move to where representation ends
+		++p;
+		shifter = shifter/10;
+	} while(shifter);
+	*p = '\0';
+	do{ //Move back, inserting digits as u go
+		*--p =(char)((i%10)+48);
+		i = i/10;
+	} while(i);
+	return itoabuf;
+}
+
 
 void execute(int x) {
 	switch (x) {
@@ -247,7 +273,7 @@ void execute(int x) {
 		IP = disk[w];
 		break;
 	case IMMEDIATE:
-		disk[link+disk[link+1]+2] = -1;
+		disk[*link+disk[*link+1]+2] = -1;
 		NEXT;
 		break;
 	case KEY:
@@ -265,7 +291,7 @@ void execute(int x) {
 		NEXT;
 		break;
 	case FIND:
-		w = link;
+		w = *link;
 		while (strcmp((char *)(disk+TOS), (char *)(disk+w+1))) {
 			w = disk[w];
 		}
@@ -298,6 +324,7 @@ void execute(int x) {
 	case PUSNXT:
 		PUSH disk[NTORS++];
 		NEXT;
+		break;
 	case BRANCH:
 		TORS = TORS+disk[++IP];
 		NEXT;
@@ -310,10 +337,16 @@ void execute(int x) {
 		RPUSH TOS;
 		DROP;
 		NEXT;
+		break;
 	case FROMR:
 		PUSH TORS;
 		RDROP;
 		NEXT;
+		break;
+	case DUP:
+		PUSH TOS;
+		NEXT;
+		break;
 	case SWAP:
 		w = TOS;
 		TOS = NTOS;
@@ -339,9 +372,6 @@ void execute(int x) {
 	case DIV:
 		TWOLEVEL(NTOS / TOS);
 		break;
-	case MOD:
-		TWOLEVEL(NTOS % TOS);
-		break;
 	case RSHIFT:
 		NTOS >>= TOS;
 		DROP;
@@ -366,9 +396,15 @@ void execute(int x) {
 		DROP;
 		NEXT;
 		break;
-	case NEG:
-		TOS = ~TOS + 1;
+	case ATOI:
+		TOS = atoi((char *)(disk+TOS));
 		NEXT;
+		break;
+	case PNUM:
+		puts(itoa(TOS));
+		DROP;
+		NEXT;
+		break;
 	case AND:
 		NTOS &= TOS;
 		DROP;
@@ -383,6 +419,7 @@ void execute(int x) {
 		NTOS ^= TOS;
 		DROP;
 		NEXT;
+		break;
 	case NOT:
 		TOS = ~TOS;
 		NEXT;
