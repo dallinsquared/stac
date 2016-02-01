@@ -52,7 +52,11 @@
 #define TWOLEVEL(EFFECT) NTOS=EFFECT;DROP;NEXT
 #define COMPPRIM(PRIM) enter(primaddr[PRIM])
 #define COLON(NAME) intern(DOCOL, 0);int NAME=*dict-1
-#define IF 
+#define IF(BNAME) enter(notbranch);int BNAME=*dict;enter(0)
+#define ELSE(BNAME) COMPPRIM(BRANCH);\
+       	disk[BNAME]=*dict+1-BNAME;\
+	BNAME=*dict;enter(0)
+#define THEN(BNAME) disk[BNAME]=*dict-BNAME
 
 int pack;
 int diff;
@@ -193,25 +197,19 @@ void finit(){
 	intern(DOCOL, -1);
 	int intloop = *dict-1;
 	enter(peekxt);
-	COMPPRIM(DUP); //dup not primitive...
+	COMPPRIM(DUP); 
 	COMPPRIM(LIT);
 	enter(1);
 	COMPPRIM(EQL);
 	COMPPRIM(NOT);
-	enter(notbranch);
-	int intfounbranch = *dict;
-	enter(0); 
+	IF(intfound);
 	COMPPRIM(NOT);
-	enter(notbranch);
-	int intimmpatch = *dict;
-	enter(0);
+	IF(intnotimm);
 	enter(excut);
-	COMPPRIM(BRANCH);
-	int intpushint = *dict;
-
-	int intrecur = *dict;
-	dict[intfounbranch] = intrecur - intfounbranch;
-	dict[intimmpatch] = intrecur - intimmpatch;
+	ELSE(intfound);
+	COMPPRIM(DROP);
+	COMPPRIM(ATOI);
+	THEN(intnotimm); THEN(intfound);
 	COMPPRIM(FROMR);
 	COMPPRIM(DROP);
 	enter(intloop);
@@ -223,21 +221,19 @@ void finit(){
 	enter(1);
 	COMPPRIM(EQL);
 	COMPPRIM(NOT);
-	enter(notbranch);
-	int compfounpatch = *dict;
-	enter(0);
-	enter(notbranch);
-	int compnotimmbran = *dict;
-	enter(0);
+	IF(compfound);
+	IF(compimm);
 	enter(excut);
-	COMPPRIM(BRANCH);
-	int compimmelse = *dict;
-	enter(0);
-	dict[compnotimmbran] = compimmelse - compnotimmbran + 1;
+	ELSE(compimm)
 	enter(comptos);
-	int comprecur = *dict;
-	dict[compfounpatch] = comprecur - compfounpatch;
-	dict[compimmelse] = comprecur - compimmelse;
+	ELSE(compfound);
+	COMPPRIM(DROP);
+	COMPPRIM(LIT);
+	COMPPRIM(LIT);
+	enter(comptos);
+	COMPPRIM(ATOI);
+	enter(comptos);
+	THEN(compfound); THEN(compimm);
 	COMPPRIM(FROMR);
 	COMPPRIM(DROP);
 	enter(comploop);
