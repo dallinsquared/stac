@@ -30,10 +30,11 @@
 #define EQL 25
 #define EMIT 26
 #define ATOI 27
-#define AND 28
-#define OR 29
-#define XOR 30
-#define NOT 31
+#define PNUM 28
+#define AND 29
+#define OR 30
+#define XOR 31
+#define NOT 32
 
 #define DSIZE 500
 #define RSSIZE 50
@@ -224,7 +225,7 @@ void finit(){
 	IF(compfound);
 	IF(compimm);
 	enter(excut);
-	ELSE(compimm)
+	ELSE(compimm);
 	enter(comptos);
 	ELSE(compfound);
 	COMPPRIM(DROP);
@@ -262,6 +263,7 @@ char* itoa(int i){
 
 
 void execute(int x) {
+	char *s;
 	switch (x) {
 	case DOCOL:
 		w = ++IP;
@@ -393,7 +395,11 @@ void execute(int x) {
 		NEXT;
 		break;
 	case ATOI:
-		TOS = atoi((char *)(disk+TOS));
+
+		TOS = (int) strtol((char *)(disk+TOS),&s, 10);
+		if((int *)s == (disk+TOS)){ //this might fail, if so, we can cast the disk pointer to a char *
+			DROP;
+		}
 		NEXT;
 		break;
 	case PNUM:
