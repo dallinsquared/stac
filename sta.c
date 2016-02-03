@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "sizedefs.h"
 
 #define DOCOL 0
 #define IMMEDIATE 1
@@ -59,9 +60,6 @@
 	BNAME=*dict;enter(0)
 #define THEN(BNAME) disk[BNAME]=*dict-BNAME
 
-int pack;
-int diff;
-
 int disk[DSIZE] = {3, DSIZE-(RSSIZE+STSIZE+1), DSIZE-1},
     *dict = disk, *rsp = disk+1, *tosp = disk+2,
     *link = disk+3, w, IP, primaddr[NOT+1];
@@ -90,6 +88,14 @@ int scant(char c, char *s) {
 	}
 }
 
+int cmpstr(int *s1, int *s2) {
+	char *ss1 = (char *)(s1+1);
+	char *ss2 = (char *)(s2+1);
+	int comp = *s1 == *s2;
+	if (!comp)
+		return comp;
+//figure out how to mimic strcmp behavior efficiently
+
 void enter(int x){
 	disk[(*dict)++] = x;
 }
@@ -100,7 +106,7 @@ void intern(int x, int imm) {
 	w = *dict;
 	enter(0);
 	int slen = scant((char) 127, (char *)(disk+(*dict)));
-	int ilen = slen/pack + (slen%pack) ? 1 : 0;
+	int ilen = slen/PACK + (slen%PACK) ? 1 : 0;
 	disk[w] = ilen;
 	*dict += ilen;
 	enter(imm);
@@ -238,6 +244,11 @@ void finit(){
 	COMPPRIM(FROMR);
 	COMPPRIM(DROP);
 	enter(comploop);
+	//colon compiler
+	COLON(colon);
+	COMPPRIM(WORD);
+	COMPPRIM(DUP);
+
 
 	IP=intloop;
 }
@@ -254,7 +265,7 @@ char* itoa(int i){
 		shifter = shifter/10;
 	} while(shifter);
 	*p = '\0';
-	do{ //Move back, inserting digits as u go
+	do{ //Move back, inserting digits as you go
 		*--p =(char)((i%10)+48);
 		i = i/10;
 	} while(i);
@@ -282,15 +293,15 @@ void execute(int x) {
 		w = *dict;
 		enter(0);
 		int slen = scant((char) disk[(*tosp)++], (char *)(disk + (*dict)));
-		int ilen = slen/pack + (slen%pack) ? 1 : 0;
+		int ilen = slen/PACK + (slen%PACK) ? 1 : 0;
 		disk[w] = ilen;
-		PUSH *dict;
-		*dict += ilen;
+		PUSH w;
+		*dict = w;
 		NEXT;
 		break;
 	case FIND:
 		w = *link;
-		while (strcmp((char *)(disk+TOS), (char *)(disk+w+1))) {
+		while (strcmp((char *)(disk+TOS+1), (char *)(disk+w+2))) {
 			w = disk[w];
 		}
 		if (!w) {
@@ -395,7 +406,6 @@ void execute(int x) {
 		NEXT;
 		break;
 	case ATOI:
-
 		TOS = (int) strtol((char *)(disk+TOS),&s, 10);
 		if((int *)s == (disk+TOS)){ //this might fail, if so, we can cast the disk pointer to a char *
 			DROP;
@@ -460,8 +470,6 @@ void cycle() {
 }
 
 void main() {
-	pack = sizeof (int) / sizeof (char);
-	diff = sizeof (int) - (sizeof (char) * pack);
 	pinit();
 	finit();
 	while(1) {
