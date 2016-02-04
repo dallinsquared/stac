@@ -88,13 +88,18 @@ int scant(char c, char *s) {
 	}
 }
 
-int cmpstr(int *s1, int *s2) {
+int streql(int *s1, int *s2) {
 	char *ss1 = (char *)(s1+1);
 	char *ss2 = (char *)(s2+1);
 	int comp = *s1 == *s2;
 	if (!comp)
 		return comp;
-//figure out how to mimic strcmp behavior efficiently
+	for (int i = 0; i < *s1; i++){
+		if (ss1[i] != ss2[i])
+			return 0;
+	}
+	return 1;
+}
 
 void enter(int x){
 	disk[(*dict)++] = x;
@@ -120,28 +125,6 @@ void pinit() {
 	}
 }
 void finit(){
-	//flag for compiling
-	COLON(compileq);
-	COMPPRIM(LIT);
-	int compflag = *dict;
-	enter(0);
-	COMPPRIM(EXIT);
-	//enter compile mode
-	COLON(compilemode); 
-	COMPPRIM(LIT);
-	enter(-1);
-	COMPPRIM(LIT);
-	enter(compflag);
-	COMPPRIM(POKE);
-	COMPPRIM(EXIT);
-	//exit compile mode
-	COLON(interpmode);
-	COMPPRIM(LIT);
-	enter(0);
-	COMPPRIM(LIT);
-	enter(compflag);
-	COMPPRIM(POKE);
-	COMPPRIM(EXIT);
 	//push the address of the next open cell to the stack
 	COLON(here);
 	COMPPRIM(LIT);
@@ -251,8 +234,8 @@ void finit(){
 	COMPPRIM(PEEK);
 	COMPPRIM(LIT);
 	enter(1);
-	COMPPRIM(ADD);
-	COMPPRIM(ADD);
+	COMPPRIM(PLUS);
+	COMPPRIM(PLUS);
 	COMPPRIM(LIT);
 	enter(0);
 	COMPPRIM(POKE);
@@ -312,7 +295,7 @@ void execute(int x) {
 		break;
 	case FIND:
 		w = *link;
-		while (strcmp((char *)(disk+TOS+1), (char *)(disk+w+2))) {
+		while (streql(disk+TOS, (disk+w+1))) {
 			w = disk[w];
 		}
 		if (!w) {
