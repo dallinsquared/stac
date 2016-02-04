@@ -248,7 +248,18 @@ void finit(){
 	COLON(colon);
 	COMPPRIM(WORD);
 	COMPPRIM(DUP);
-
+	COMPPRIM(PEEK);
+	COMPPRIM(LIT);
+	enter(1);
+	COMPPRIM(ADD);
+	COMPPRIM(ADD);
+	COMPPRIM(LIT);
+	enter(0);
+	COMPPRIM(POKE);
+	COMPPRIM(LIT);
+	enter(0);
+	enter(comptos);
+	enter(comploop);
 
 	IP=intloop;
 }
