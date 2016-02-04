@@ -37,9 +37,9 @@
 #define XOR 31
 #define NOT 32
 
-#define DSIZE 500
-#define RSSIZE 50
-#define STSIZE 50
+#define DSIZE 5000
+#define RSSIZE 100
+#define STSIZE 100
 
 #define NEXT IP=disk[(*rsp)++]
 #define RPUSH disk[++(*rsp)]=
@@ -60,12 +60,12 @@
 	BNAME=*dict;enter(0)
 #define THEN(BNAME) disk[BNAME]=*dict-BNAME
 
-int disk[DSIZE] = {3, DSIZE-(RSSIZE+STSIZE+1), DSIZE-1},
+int disk[DSIZE] = {4, DSIZE-(RSSIZE+STSIZE+1), DSIZE-1},
     *dict = disk, *rsp = disk+1, *tosp = disk+2,
     *link = disk+3, w, IP, primaddr[NOT+1];
 
 char itoabuf[10] = {'\0'};
-int scant(char c, char *s) {
+int scant(char c, char *s) {   // somehow returning 1 for length across the board. . .
 	for( int i = 0; ; s++, i++) {
 		*s = getchar();
 		if (*s == c) {
@@ -101,6 +101,15 @@ int streql(int *s1, int *s2) {
 	return 1;
 }
 
+int putnumstr(int *s1) {
+	int len = *s1;
+	char *ss1 = (char *)(s1+1);
+	for(int i = 0; i < len; i++, ss1++){
+		putchar((int)(*ss1));
+	}
+	return 0;
+}
+
 void enter(int x){
 	disk[(*dict)++] = x;
 }
@@ -113,6 +122,7 @@ void intern(int x, int imm) {
 	int slen = scant((char) 127, (char *)(disk+(*dict)));
 	int ilen = slen/PACK + (slen%PACK) ? 1 : 0;
 	disk[w] = ilen;
+	putnumstr(disk+w);
 	*dict += ilen;
 	enter(imm);
 	enter(x);
