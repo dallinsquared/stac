@@ -56,7 +56,7 @@
 #define COLON(NAME) intern(DOCOL, 0);int NAME=*dict-1
 #define IF(BNAME) enter(notbranch);int BNAME=*dict;enter(0)
 #define ELSE(BNAME) COMPPRIM(BRANCH);\
-       	disk[BNAME]=*dict+1-BNAME;\
+       	disk[BNAME]=(*dict)+1-BNAME;\
 	BNAME=*dict;enter(0)
 #define THEN(BNAME) disk[BNAME]=*dict-BNAME
 
@@ -65,7 +65,7 @@ int disk[DSIZE] = {4, DSIZE-(RSSIZE+STSIZE+1), DSIZE-1},
     *link = disk+3, w, IP, primaddr[NOT+1];
 
 char itoabuf[10] = {'\0'};
-int scant(char c, char *s) {   // somehow returning 1 for length across the board. . .
+int scant(char c, char *s) {  
 	for( int i = 0; ; s++, i++) {
 		*s = getchar();
 		if (*s == c) {
@@ -121,9 +121,10 @@ void intern(int x, int imm) {
 	enter(0);
 	int slen = scant((char) 127, (char *)(disk+(*dict)));
 	int ilen = slen/PACK + (slen%PACK) ? 1 : 0;
-	disk[w] = ilen;
+	disk[w] = slen;
 	putnumstr(disk+w);
-	*dict += ilen;
+	putchar(32);
+	*dict += slen/PACK + 1;
 	enter(imm);
 	enter(x);
 }
@@ -207,11 +208,11 @@ void finit(){
 	IF(intnotimm);
 	enter(excut);
 	ELSE(intfound);
-	COMPPRIM(DROP);
+	COMPPRIM(PDROP);
 	COMPPRIM(ATOI);
 	THEN(intnotimm); THEN(intfound);
 	COMPPRIM(FROMR);
-	COMPPRIM(DROP);
+	COMPPRIM(PDROP);
 	enter(intloop);
 	//compile
 	COLON(comploop);
@@ -227,7 +228,7 @@ void finit(){
 	ELSE(compimm);
 	enter(comptos);
 	ELSE(compfound);
-	COMPPRIM(DROP);
+	COMPPRIM(PDROP);
 	COMPPRIM(LIT);
 	COMPPRIM(LIT);
 	enter(comptos);
@@ -235,7 +236,7 @@ void finit(){
 	enter(comptos);
 	THEN(compfound); THEN(compimm);
 	COMPPRIM(FROMR);
-	COMPPRIM(DROP);
+	COMPPRIM(PDROP);
 	enter(comploop);
 	//colon compiler
 	COLON(colon);
@@ -253,8 +254,12 @@ void finit(){
 	enter(0);
 	enter(comptos);
 	enter(comploop);
+	//cold start to setup interpreter
+	int coldstart = *dict;
+	enter(DOCOL);
+	enter(intloop);
 
-	IP=intloop;
+	IP=coldstart;
 }
 
 char* itoa(int i){
@@ -297,8 +302,7 @@ void execute(int x) {
 		w = *dict;
 		enter(0);
 		int slen = scant((char) disk[(*tosp)++], (char *)(disk + (*dict)));
-		int ilen = slen/PACK + (slen%PACK) ? 1 : 0;
-		disk[w] = ilen;
+		disk[w] = slen;
 		PUSH w;
 		*dict = w;
 		NEXT;
@@ -451,26 +455,27 @@ void sanitycheck() {
 		}
 	}
 	if (!(*dict < DSIZE-RSSIZE-STSIZE)) {
-		printf("ERROR: out of dictionary space!\n");
+		puts("ERROR: out of dictionary space!\n");
 		exit(1);
 	}
 	if (!(DSIZE-RSSIZE-STSIZE <= *rsp)) {
-		printf("ERROR: improper return stack size!\n");
+		puts("ERROR: improper return stack size!\n");
 		exit(1);
 	}
 	if (!(DSIZE-RSSIZE-STSIZE < *tosp)) {
-		printf("ERROR: improper stack size!\n");
+		puts("ERROR: improper stack size!\n");
 		exit(1);
 	}
 	if (*rsp > *tosp) {
-		printf("ERROR: stack intersection!\n");
+		puts("ERROR: stack intersection!\n");
 		exit(1);
 	}
 }
 
 void cycle() {
-	sanitycheck();
+	//sanitycheck();
 	execute(disk[IP]);
+	puts("cycle\n");
 }
 
 void main() {
