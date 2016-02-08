@@ -41,7 +41,7 @@
 #define RSSIZE 100
 #define STSIZE 100
 
-#define NEXT IP=disk[(*rsp)++]
+#define NEXT IP=disk[*rsp]++
 #define RPUSH disk[++(*rsp)]=
 #define PUSH disk[--(*tosp)]=
 #define TOS disk[*tosp]
