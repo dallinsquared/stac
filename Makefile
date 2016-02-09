@@ -1,11 +1,12 @@
 CC = gcc
+CCOPTS = -std=c99 -pedantic
 EXES = stac getsizes
 
 stac: sizedefs.h sta.c
-	$(CC) sta.c -o stac
+	$(CC) $(CCOPTS) sta.c -o stac
 
 debug: sizedefs.h sta.c
-	$(CC) sta.c -o stac -ggdb
+	$(CC) $(CCOPTS) sta.c -o stac -ggdb
 
 sizedefs.h: getsizes.c 
 	$(CC) getsizes.c -o getsizes
