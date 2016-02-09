@@ -60,7 +60,7 @@
 	BNAME=*dict;enter(0)
 #define THEN(BNAME) disk[BNAME]=*dict-BNAME
 
-int disk[DSIZE] = {4, DSIZE-(RSSIZE+STSIZE+1), DSIZE-1},
+int disk[DSIZE] = {4, DSIZE-(RSSIZE+STSIZE+1), DSIZE-1, 0},
     *dict = disk, *rsp = disk+1, *tosp = disk+2,
     *link = disk+3, w, IP, primaddr[NOT+1];
 
@@ -96,8 +96,8 @@ int streql(int *s1, int *s2) {
 	char *ss1 = (char *)(s1+1);
 	char *ss2 = (char *)(s2+1);
 	int comp = *s1 == *s2;
-	if (!comp)
-		return comp;
+	if (*s1 != *s2)
+		return 0;
 	for (int i = 0; i < *s1; i++){
 		if (ss1[i] != ss2[i])
 			return 0;
@@ -188,10 +188,12 @@ void execute(int x) {
 		NEXT;
 		break;
 	case FIND:
-		puts("FIND\n");
+		mputs("FIND ");
 		w = *link;
-		while (streql(disk+TOS, (disk+w+1))) {
+		while (!(streql(disk+TOS, (disk+w+1))) && w) {
 			w = disk[w];
+			mputs("w = ");
+			puts(itoa(w));
 		}
 		if (!w) {
 			PUSH 1;
@@ -199,6 +201,7 @@ void execute(int x) {
 			TOS = w + (dict[w+1]);
 			PUSH dict[TOS+1];
 		}
+		puts(itoa(TOS));
 		NEXT;
 		break;
 	case EXIT:
@@ -229,24 +232,29 @@ void execute(int x) {
 		NEXT;
 		break;
 	case BRANCH:
+		puts("BRANCH");
 		TORS = TORS+disk[++IP];
 		NEXT;
 		break;
 	case PDROP:
+		puts("DROP");
 		DROP;
 		NEXT;
 		break;
 	case TOR:
+		puts(">R");
 		RPUSH TOS;
 		DROP;
 		NEXT;
 		break;
 	case FROMR:
+		puts("<R");
 		PUSH TORS;
 		RDROP;
 		NEXT;
 		break;
 	case DUP:
+		puts("DUP");
 		PUSH TOS;
 		NEXT;
 		break;
@@ -292,7 +300,9 @@ void execute(int x) {
 		TWOLEVEL(NTOS > TOS ? -1 : 0);
 		break;
 	case EQL:
+		mputs("EQL? ");
 		TWOLEVEL(NTOS == TOS ? -1 : 0);
+		puts(itoa(TOS));
 		break;
 	case EMIT:
 		putchar(TOS);
@@ -300,6 +310,7 @@ void execute(int x) {
 		NEXT;
 		break;
 	case ATOI:
+		puts("ATOI");
 		TOS = (int) strtol((char *)(disk+TOS),&s, 10);
 		if((int *)s == (disk+TOS)){ //this might fail, if so, we can cast the disk pointer to a char *
 			DROP;
@@ -327,6 +338,7 @@ void execute(int x) {
 		NEXT;
 		break;
 	case NOT:
+		puts("NOT");
 		TOS = ~TOS;
 		NEXT;
 		break;
