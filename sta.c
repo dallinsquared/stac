@@ -210,10 +210,18 @@ void execute(int x) {
 		NEXT;
 		break;
 	case PEEK:
+		mputs("PEEKING ");
+		mputs(itoa(TOS));
 		TOS = disk[TOS];
+		mputs("->");
+		puts(itoa(TOS));
 		NEXT;
 		break;
 	case POKE:
+		mputs("POKING ");
+		mputs(itoa(NTOS));
+		mputs("->");
+		puts(itoa(TOS));
 		disk[TOS] = NTOS;
 		DROP;
 		DROP;
@@ -228,7 +236,13 @@ void execute(int x) {
 		NEXT;
 		break;
 	case PUSNXT:
-		PUSH disk[TORS++];
+		mputs("previous TORS = ");
+		puts(itoa(TORS));
+		PUSH disk[NTORS++];
+		mputs("PUSHNEXT TOS = ");
+		puts(itoa(TOS));
+		mputs("TORS = ");
+		puts(itoa(TORS));
 		NEXT;
 		break;
 	case BRANCH:
@@ -243,14 +257,18 @@ void execute(int x) {
 		break;
 	case TOR:
 		puts(">R");
-		RPUSH TOS;
+		w = TORS;
+		TORS = TOS;
+		RPUSH w;
 		DROP;
 		NEXT;
 		break;
 	case FROMR:
 		puts("<R");
-		PUSH TORS;
+		PUSH NTORS;
+		w = TORS;
 		RDROP;
+		TORS = w;
 		NEXT;
 		break;
 	case DUP:
@@ -272,9 +290,15 @@ void execute(int x) {
 		NEXT;
 		break;
 	case PLUS:
+		mputs(itoa(NTOS));
+		mputs(" PLUS ");
+		puts(itoa(TOS));
 		TWOLEVEL(TOS + NTOS);
 		break;
 	case MINUS:
+		mputs(itoa(NTOS));
+		mputs(" MINUS ");
+		puts(itoa(TOS));
 		TWOLEVEL(NTOS - TOS);
 		break;
 	case MULT:
@@ -323,6 +347,9 @@ void execute(int x) {
 		NEXT;
 		break;
 	case AND:
+		mputs(itoa(NTOS));
+		mputs(" AND ");
+		puts(itoa(TOS));
 		NTOS &= TOS;
 		DROP;
 		NEXT;
@@ -393,15 +420,10 @@ void finit(){
 	COMPPRIM(EQL);
 	COMPPRIM(PUSNXT);
 	enter(compbran); //compute branch value depending on the boolean found on the stack.
-	COMPPRIM(LIT);	//add the branch value to the return value and store it back on the return stack, overwriting the old value.
-	enter(1);
-	COMPPRIM(PEEK);
-	COMPPRIM(PEEK);
+	COMPPRIM(FROMR);
 	COMPPRIM(PLUS);
-	COMPPRIM(LIT);
-	enter(1);
-	COMPPRIM(PEEK);
-	COMPPRIM(POKE);
+	COMPPRIM(TOR);
+	//add the branch value to the return value and store it back on the return stack, overwriting the old value.
 	COMPPRIM(EXIT);
 	//peek xt
 	COLON(peekxt);
