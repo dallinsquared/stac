@@ -2,40 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "sizedefs.h"
-
-#define DOCOL 0
-#define IMMEDIATE 1
-#define KEY 2
-#define WORD 3 
-#define FIND 4 
-#define EXIT 5
-#define PEEK 6
-#define POKE 7
-#define LIT  8
-#define PUSNXT 9
-#define BRANCH 10
-#define PDROP 11
-#define TOR 12
-#define FROMR 13
-#define DUP 14
-#define SWAP 15
-#define ROT  16
-#define PLUS 17
-#define MINUS 18
-#define MULT 19
-#define DIV 20
-#define RSHIFT 21
-#define LSHIFT 22 
-#define LESS 23
-#define GREAT 24
-#define EQL 25
-#define EMIT 26
-#define ATOI 27
-#define PNUM 28
-#define AND 29
-#define OR 30
-#define XOR 31
-#define NOT 32
+#include "primdefs.h"
 
 #define DSIZE 5000
 #define RSSIZE 100

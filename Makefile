@@ -1,12 +1,16 @@
-CC = gcc
 CCOPTS = -std=c99 -pedantic
-EXES = stac getsizes
+CC = gcc $(CCOPTS)
+EXES = stac getsizes primex
 
-stac: sizedefs.h sta.c
-	$(CC) $(CCOPTS) sta.c -o stac
+stac: sizedefs.h primdefs.h sta.c
+	$(CC) sta.c -o stac
 
 debug: sizedefs.h sta.c
-	$(CC) $(CCOPTS) sta.c -o stac -ggdb
+	$(CC)  sta.c -o stac -ggdb
+
+primdefs.h: primex.c primitives
+	$(CC) primex.c -o primex
+	./primex <primitives >primdefs.h
 
 sizedefs.h: getsizes.c 
 	$(CC) getsizes.c -o getsizes
