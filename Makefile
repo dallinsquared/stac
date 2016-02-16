@@ -1,6 +1,7 @@
 CCOPTS = -std=c99 -pedantic
 CC = gcc $(CCOPTS)
 EXES = stac getsizes primex
+GENS = primdefs.h sizedefs.h
 
 stac: sizedefs.h primdefs.h sta.c
 	$(CC) sta.c -o stac
@@ -17,4 +18,4 @@ sizedefs.h: getsizes.c
 	./getsizes > sizedefs.h
 
 clean:
-	rm -f $(EXES) sizedefs.h
+	rm -rfv $(EXES) $(GENS)

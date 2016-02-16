@@ -23,9 +23,9 @@
 #define COLON(NAME) intern(DOCOL, 0);int NAME=*dict-1
 #define IF(BNAME) enter(notbranch);int BNAME=*dict;enter(0)
 #define ELSE(BNAME) COMPPRIM(BRANCH);\
-       	disk[BNAME]=(*dict)+1-BNAME;\
+       	disk[BNAME]=(*dict)-BNAME;\
 	BNAME=*dict;enter(0)
-#define THEN(BNAME) disk[BNAME]=*dict-BNAME
+#define THEN(BNAME) disk[BNAME]=*dict-BNAME-1
 
 int disk[DSIZE] = {4, DSIZE-(RSSIZE+STSIZE+1), DSIZE-1, 0},
     *dict = disk, *rsp = disk+1, *tosp = disk+2,
@@ -157,6 +157,8 @@ void execute(int x) {
 	case FIND:
 		mputs("FIND ");
 		w = *link;
+		mputs("w = ");
+		puts(itoa(w));
 		while (!(streql(disk+TOS, (disk+w+1))) && w) {
 			w = disk[w];
 			mputs("w = ");
@@ -165,8 +167,15 @@ void execute(int x) {
 		if (!w) {
 			PUSH 1;
 		} else {
-			TOS = w + (dict[w+1]);
-			PUSH dict[TOS+1];
+			for (int i = 0; i < 5; i++) {
+				mputs(itoa(w+i));
+				mputs(": ");
+				puts(itoa(disk[w+i]));
+			}
+			putnumstr(disk+w+1);
+			TOS = w + 2 + ((dict[w+1])/PACK + 2);
+			w = dict[TOS-1];
+			PUSH w;
 		}
 		puts(itoa(TOS));
 		NEXT;
@@ -240,7 +249,8 @@ void execute(int x) {
 		break;
 	case DUP:
 		puts("DUP");
-		PUSH TOS;
+		w = TOS;
+		PUSH w;
 		NEXT;
 		break;
 	case SWAP:
@@ -291,9 +301,12 @@ void execute(int x) {
 		TWOLEVEL(NTOS > TOS ? -1 : 0);
 		break;
 	case EQL:
-		mputs("EQL? ");
-		TWOLEVEL(NTOS == TOS ? -1 : 0);
+		mputs(itoa(NTOS));
+		mputs(" EQL? ");
 		puts(itoa(TOS));
+		NTOS = NTOS == TOS ? -1 : 0;
+		DROP;
+		NEXT;
 		break;
 	case EMIT:
 		putchar(TOS);
@@ -302,9 +315,10 @@ void execute(int x) {
 		break;
 	case ATOI:
 		puts("ATOI");
-		TOS = (int) strtol((char *)(disk+TOS),&s, 10);
-		if((int *)s == (disk+TOS)){ //this might fail, if so, we can cast the disk pointer to a char *
+		TOS = (int) strtol((char *)(disk+TOS+1),&s, 10);
+		if(s == (char *)(disk+TOS)){ //this might fail, if so, we can cast the disk pointer to a char *
 			DROP;
+			puts("NO NUMBER FOUND");
 		}
 		NEXT;
 		break;
@@ -499,8 +513,12 @@ void sanitycheck() {
 void cycle() {
 	//sanitycheck();
 	execute(disk[IP]);
-	mputs("cycle IP = ");
-	puts(itoa(IP));
+	mputs("STACK = ");
+	mputs(itoa(TOS));
+	mputs(", ");
+	mputs(itoa(NTOS));
+	mputs(", ");
+	puts(itoa(disk[(*tosp) + 2]));
 }
 
 void main() {
