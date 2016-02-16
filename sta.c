@@ -223,7 +223,10 @@ void execute(int x) {
 		break;
 	case BRANCH:
 		puts("BRANCH");
-		TORS = TORS+disk[++IP];
+		w = disk[TORS++];
+		mputs("BVALUE=");
+		puts(itoa(w));
+		TORS = TORS+w;
 		NEXT;
 		break;
 	case PDROP:
@@ -379,13 +382,7 @@ void finit(){
 	COMPPRIM(EXIT);
 	//computebranch
 	COLON(compbran);
-	COMPPRIM(LIT);
-	enter(1);  
-	COMPPRIM(MINUS);
 	COMPPRIM(AND);
-	COMPPRIM(LIT);
-	enter(1);
-	COMPPRIM(PLUS);
 	COMPPRIM(EXIT);
 	//turn a nonzero value to -1, and keep zero values
 	COLON(logify);
@@ -415,7 +412,11 @@ void finit(){
 	COMPPRIM(EXIT);
 	//execute xt
 	COLON(excut);
-	COMPPRIM(TOR);
+	int extspace = *dict + 3;
+	COMPPRIM(LIT);
+	enter(extspace);
+	COMPPRIM(POKE);
+	enter(0);
 	COMPPRIM(EXIT);
 	//interpret
 	intern(DOCOL, -1);
@@ -519,6 +520,7 @@ void cycle() {
 	mputs(itoa(NTOS));
 	mputs(", ");
 	puts(itoa(disk[(*tosp) + 2]));
+	puts("");
 }
 
 void main() {
