@@ -1,9 +1,6 @@
 # stac
 simple implementation of forth in c
 
-## Status
-This is still very much alpha software!! It is on github, and it compiles, but there are very serious bugs that make it all but useless at this point. . .
-
 ## Building
 Run `make` to build the default target.  This will generate a system dependent include file, and compile the whole program.
 For Debug, run `make debug`.  You can then attach to the process using `sudo gdb -p [proc id of stac]`
