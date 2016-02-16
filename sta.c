@@ -36,6 +36,12 @@ char itoabuf[10] = {'\0'};
 int mputs(char *s){
 	return fputs(s, stdout);
 }
+int mputchar(int c){
+	if (!write(stdout, &((char)c), 1)){
+		return EOF;
+	}
+	return c;
+}
 int scant(char c, char *s) {  
 	for( int i = 0; ; s++, i++) {
 		*s = getchar();
@@ -100,6 +106,14 @@ char *itoa(int i){
 	return itoabuf;
 }
 
+void dumpstack(int i, int *sp){
+	mputs("STACK[");
+	for(int j = 0; j < i; j++){
+		mputs(" ");
+		mputs(itoa(disk[*sp+j]));
+	}
+	puts(" ]");
+}
 void enter(int x){
 	disk[(*dict)++] = x;
 }
@@ -125,12 +139,8 @@ void intern(int x, int imm) {
 
 void execute(int x) {
 	char *s;
-	mputs("executing ");
-	puts(itoa(x));
 	switch (x) {
 	case DOCOL:
-		mputs("DOCOL IP=");
-		puts(itoa(IP));
 		w = ++IP;
 		RPUSH ++IP;
 		IP = disk[w];
@@ -144,7 +154,6 @@ void execute(int x) {
 		NEXT;
 		break;
 	case WORD:
-		puts("WORD\n");
 		w = *dict;
 		enter(0);
 		int slen = scant((char) TOS, (char *)(disk + (*dict)));
@@ -155,87 +164,50 @@ void execute(int x) {
 		NEXT;
 		break;
 	case FIND:
-		mputs("FIND ");
 		w = *link;
-		mputs("w = ");
-		puts(itoa(w));
 		while (!(streql(disk+TOS, (disk+w+1))) && w) {
 			w = disk[w];
-			mputs("w = ");
-			puts(itoa(w));
 		}
 		if (!w) {
 			PUSH 1;
 		} else {
-			for (int i = 0; i < 5; i++) {
-				mputs(itoa(w+i));
-				mputs(": ");
-				puts(itoa(disk[w+i]));
-			}
-			putnumstr(disk+w+1);
 			TOS = w + 2 + ((dict[w+1])/PACK + 2);
 			w = dict[TOS-1];
 			PUSH w;
 		}
-		puts(itoa(TOS));
 		NEXT;
 		break;
 	case EXIT:
-		mputs("EXIT\n");
 		RDROP;
 		NEXT;
 		break;
 	case PEEK:
-		mputs("PEEKING ");
-		mputs(itoa(TOS));
 		TOS = disk[TOS];
-		mputs("->");
-		puts(itoa(TOS));
 		NEXT;
 		break;
 	case POKE:
-		mputs("POKING ");
-		mputs(itoa(NTOS));
-		mputs("->");
-		puts(itoa(TOS));
 		disk[TOS] = NTOS;
 		DROP;
 		DROP;
 		NEXT;
 		break;
 	case LIT:
-		mputs("LIT TORS = ");
-		puts(itoa(TORS));
 		PUSH disk[TORS++];
-		mputs("TOS = ");
-		puts(itoa(TOS));
 		NEXT;
 		break;
 	case PUSNXT:
-		mputs("previous TORS = ");
-		puts(itoa(TORS));
 		PUSH disk[NTORS++];
-		mputs("PUSHNEXT TOS = ");
-		puts(itoa(TOS));
-		mputs("TORS = ");
-		puts(itoa(TORS));
 		NEXT;
 		break;
 	case BRANCH:
-		puts("BRANCH");
-		w = disk[TORS++];
-		mputs("BVALUE=");
-		puts(itoa(w));
-		TORS = TORS+w;
+		TORS += disk[TORS];
 		NEXT;
 		break;
 	case PDROP:
-		puts("DROP");
 		DROP;
 		NEXT;
 		break;
 	case TOR:
-		puts(">R");
 		w = TORS;
 		TORS = TOS;
 		RPUSH w;
@@ -243,7 +215,6 @@ void execute(int x) {
 		NEXT;
 		break;
 	case FROMR:
-		puts("<R");
 		PUSH NTORS;
 		w = TORS;
 		RDROP;
@@ -251,7 +222,6 @@ void execute(int x) {
 		NEXT;
 		break;
 	case DUP:
-		puts("DUP");
 		w = TOS;
 		PUSH w;
 		NEXT;
@@ -270,15 +240,9 @@ void execute(int x) {
 		NEXT;
 		break;
 	case PLUS:
-		mputs(itoa(NTOS));
-		mputs(" PLUS ");
-		puts(itoa(TOS));
 		TWOLEVEL(TOS + NTOS);
 		break;
 	case MINUS:
-		mputs(itoa(NTOS));
-		mputs(" MINUS ");
-		puts(itoa(TOS));
 		TWOLEVEL(NTOS - TOS);
 		break;
 	case MULT:
@@ -304,20 +268,16 @@ void execute(int x) {
 		TWOLEVEL(NTOS > TOS ? -1 : 0);
 		break;
 	case EQL:
-		mputs(itoa(NTOS));
-		mputs(" EQL? ");
-		puts(itoa(TOS));
 		NTOS = NTOS == TOS ? -1 : 0;
 		DROP;
 		NEXT;
 		break;
 	case EMIT:
-		putchar(TOS);
+		mputchar(TOS);
 		DROP;
 		NEXT;
 		break;
 	case ATOI:
-		puts("ATOI");
 		TOS = (int) strtol((char *)(disk+TOS+1),&s, 10);
 		if(s == (char *)(disk+TOS)){ //this might fail, if so, we can cast the disk pointer to a char *
 			DROP;
@@ -331,9 +291,6 @@ void execute(int x) {
 		NEXT;
 		break;
 	case AND:
-		mputs(itoa(NTOS));
-		mputs(" AND ");
-		puts(itoa(TOS));
 		NTOS &= TOS;
 		DROP;
 		NEXT;
@@ -349,12 +306,15 @@ void execute(int x) {
 		NEXT;
 		break;
 	case NOT:
-		puts("NOT");
 		TOS = ~TOS;
 		NEXT;
 		break;
 	default: //this should be unreachable
 		puts("execute fallthrough!\n");
+		dumpstack(3,tosp);
+		dumpstack(5,rsp);
+		mputs("IP = ");
+		puts(itoa(IP));
 		exit(1);
 	}
 }
@@ -486,41 +446,8 @@ void finit(){
 	IP=coldstart;
 }
 
-void sanitycheck() {
-	for (int i = 0; i < 3; i++) {
-		if (!(0 <= disk[i] && disk[i] < DSIZE)){
-			printf("ERROR: reference out of bounds: disk[%d]\n", i);
-			exit(1);
-		}
-	}
-	if (!(*dict < DSIZE-RSSIZE-STSIZE)) {
-		puts("ERROR: out of dictionary space!\n");
-		exit(1);
-	}
-	if (!(DSIZE-RSSIZE-STSIZE <= *rsp)) {
-		puts("ERROR: improper return stack size!\n");
-		exit(1);
-	}
-	if (!(DSIZE-RSSIZE-STSIZE < *tosp)) {
-		puts("ERROR: improper stack size!\n");
-		exit(1);
-	}
-	if (*rsp > *tosp) {
-		puts("ERROR: stack intersection!\n");
-		exit(1);
-	}
-}
-
 void cycle() {
-	//sanitycheck();
 	execute(disk[IP]);
-	mputs("STACK = ");
-	mputs(itoa(TOS));
-	mputs(", ");
-	mputs(itoa(NTOS));
-	mputs(", ");
-	puts(itoa(disk[(*tosp) + 2]));
-	puts("");
 }
 
 void main() {
