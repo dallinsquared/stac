@@ -25,7 +25,7 @@
 #define ELSE(BNAME) COMPPRIM(BRANCH);\
        	disk[BNAME]=(*dict)-BNAME;\
 	BNAME=*dict;enter(0)
-#define THEN(BNAME) disk[BNAME]=*dict-BNAME-1
+#define THEN(BNAME) disk[BNAME]=*dict-BNAME
 
 int disk[DSIZE] = {4, DSIZE-(RSSIZE+STSIZE+1), DSIZE-1, 0},
     *dict = disk, *rsp = disk+1, *tosp = disk+2,
@@ -34,16 +34,33 @@ int disk[DSIZE] = {4, DSIZE-(RSSIZE+STSIZE+1), DSIZE-1, 0},
 char itoabuf[10] = {'\0'};
 
 int mputs(char *s){
-	return fputs(s, stdout);
+	int i = fputs(s, stdout);
+	fflush(stdout);
+	return i;
 }
 int mputchar(int c){
-	if (!write(stdout, &((char)c), 1)){
-		return EOF;
-	}
-	return c;
+	int i = putchar(c);
+	fflush(stdout);
+	return i;
 }
 int scant(char c, char *s) {  
-	for( int i = 0; ; s++, i++) {
+	int i = 1;
+	if((int)c == 127){
+		while(i){
+			*s = getchar();
+			switch (*s) {
+			case ' ':
+			case '\t':
+			case '\n':
+				break;
+			default:
+				s++;
+				i = 0;
+				break;
+			}
+		}
+	}
+	for( i = 0; ; s++, i++) {
 		*s = getchar();
 		if (*s == c) {
 			*s = '\0';
@@ -56,7 +73,7 @@ int scant(char c, char *s) {
 			case '\n':
 			case '\0':
 				*s = '\0';
-				return i;
+				return i+1;
 			}
 		}
 		if (*s == EOF){
@@ -321,7 +338,14 @@ void execute(int x) {
 
 void pinit() {
 	for(int i = DOCOL; i <= NOT; i++) {
-		intern(i, i == IMMEDIATE ? -1 : 0);
+		switch(i){
+		case 0:
+		case 8:
+			enter(i);
+			break;
+		default:
+			intern(i, i == IMMEDIATE ? -1 : 0);
+		}
 		primaddr[i] = *dict - 1;
 	}
 }
@@ -338,6 +362,15 @@ void finit(){
 	COMPPRIM(LIT);
 	enter(0);
 	COMPPRIM(PEEK);
+	COMPPRIM(POKE);
+	COMPPRIM(LIT);
+	enter(0);
+	COMPPRIM(DUP);
+	COMPPRIM(PEEK);
+	COMPPRIM(LIT);
+	enter(1);
+	COMPPRIM(PLUS);
+	COMPPRIM(SWAP);
 	COMPPRIM(POKE);
 	COMPPRIM(EXIT);
 	//computebranch
@@ -357,7 +390,7 @@ void finit(){
 	enter(0);
 	COMPPRIM(EQL);
 	COMPPRIM(PUSNXT);
-	enter(compbran); //compute branch value depending on the boolean found on the stack.
+	COMPPRIM(AND); //compute branch value depending on the boolean found on the stack.
 	COMPPRIM(FROMR);
 	COMPPRIM(PLUS);
 	COMPPRIM(TOR);
@@ -450,7 +483,7 @@ void cycle() {
 	execute(disk[IP]);
 }
 
-void main() {
+int main() {
 	pinit();
 	finit();
 	while(1) {
