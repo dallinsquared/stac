@@ -9,9 +9,9 @@ stac: sizedefs.h primdefs.h sta.c
 debug: sizedefs.h sta.c
 	$(CC)  sta.c -o stac -ggdb
 
-primdefs.h: primex.c primitives
+primdefs.h: primex.c genprim.sh
 	$(CC) primex.c -o primex
-	./primex <primitives >primdefs.h
+	./genprim.sh <sta.c | ./primex >primdefs.h
 
 sizedefs.h: getsizes.c 
 	$(CC) getsizes.c -o getsizes
