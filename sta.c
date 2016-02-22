@@ -171,6 +171,7 @@ void execute(int x) {
 		NEXT;
 		break;
 	case WORD:
+		dumpstack(5, tosp);
 		w = *dict;
 		enter(0);
 		int slen = scant((char) TOS, (char *)(disk + (*dict)));
@@ -434,6 +435,9 @@ void finit(){
 	//compile
 	COLON(comploop);
 	enter(peekxt);
+		COMPPRIM(LIT);
+		enter(93);
+		COMPPRIM(EMIT);
 	COMPPRIM(DUP);
 	COMPPRIM(LIT);
 	enter(1);
@@ -457,7 +461,15 @@ void finit(){
 	enter(comploop);
 	//colon compiler
 	COLON(colon);
+		COMPPRIM(LIT);
+		enter(93);
+		COMPPRIM(EMIT);
+	COMPPRIM(LIT);
+	enter(127);
 	COMPPRIM(WORD);
+		COMPPRIM(LIT);
+		enter(87);
+		COMPPRIM(EMIT);
 	COMPPRIM(DUP);
 	COMPPRIM(PEEK);
 	COMPPRIM(LIT);
