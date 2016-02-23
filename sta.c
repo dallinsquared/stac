@@ -143,14 +143,8 @@ void intern(int x, int imm) {
 	int slen = scant((char) 127, (char *)(disk+(*dict)));
 	int ilen = slen/PACK + (slen%PACK) ? 1 : 0;
 	disk[w] = slen;
-	putnumstr(disk+w);
-	mputs(": interning ");
-	mputs(itoa(x));
-	putchar(32);
 	*dict += slen/PACK + 1;
 	enter(imm);
-	mputs("@ ");
-	puts(itoa(*dict));
 	enter(x);
 }
 
@@ -163,7 +157,7 @@ void execute(int x) {
 		IP = disk[w];
 		break;
 	case IMMEDIATE:
-		disk[*link+disk[*link+1]+2] = -1;
+		disk[*link+(disk[*link+1]/PACK)+2] = -1;
 		NEXT;
 		break;
 	case KEY:
@@ -171,7 +165,6 @@ void execute(int x) {
 		NEXT;
 		break;
 	case WORD:
-		dumpstack(5, tosp);
 		w = *dict;
 		enter(0);
 		int slen = scant((char) TOS, (char *)(disk + (*dict)));
@@ -435,9 +428,6 @@ void finit(){
 	//compile
 	COLON(comploop);
 	enter(peekxt);
-		COMPPRIM(LIT);
-		enter(93);
-		COMPPRIM(EMIT);
 	COMPPRIM(DUP);
 	COMPPRIM(LIT);
 	enter(1);
@@ -461,15 +451,18 @@ void finit(){
 	enter(comploop);
 	//colon compiler
 	COLON(colon);
-		COMPPRIM(LIT);
-		enter(93);
-		COMPPRIM(EMIT);
+	COMPPRIM(LIT);
+	enter(0);
+	COMPPRIM(PEEK);
+	COMPPRIM(LIT);
+	enter(3);
+	COMPPRIM(DUP);
+	COMPPRIM(PEEK);
+	enter(comptos);
+	COMPPRIM(POKE);
 	COMPPRIM(LIT);
 	enter(127);
 	COMPPRIM(WORD);
-		COMPPRIM(LIT);
-		enter(87);
-		COMPPRIM(EMIT);
 	COMPPRIM(DUP);
 	COMPPRIM(PEEK);
 	COMPPRIM(LIT);
@@ -491,14 +484,10 @@ void finit(){
 	IP=coldstart;
 }
 
-void cycle() {
-	execute(disk[IP]);
-}
-
 int main() {
 	pinit();
 	finit();
 	while(1) {
-		cycle();
+		execute(disk[IP]);
 	}
 }
