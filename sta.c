@@ -157,7 +157,8 @@ void execute(int x) {
 		IP = disk[w];
 		break;
 	case IMMEDIATE:
-		disk[*link+(disk[*link+1]/PACK)+2] = -1;
+		disk[*dict-2] = -1;
+		puts("IMMEDIATE");
 		NEXT;
 		break;
 	case KEY:
@@ -324,6 +325,7 @@ void execute(int x) {
 		puts("execute fallthrough!\n");
 		dumpstack(3,tosp);
 		dumpstack(5,rsp);
+		dumpstack(15, disk+(*link));
 		mputs("IP = ");
 		puts(itoa(IP));
 		exit(1);
@@ -435,6 +437,9 @@ void finit(){
 	COMPPRIM(NOT);
 	IF(compfound);
 	IF(compimm);
+		COMPPRIM(LIT);
+		enter(73);
+		COMPPRIM(EMIT);
 	enter(excut);
 	ELSE(compimm);
 	enter(comptos);
@@ -488,6 +493,11 @@ int main() {
 	pinit();
 	finit();
 	while(1) {
+		mputs("executing ");
+		puts(itoa(disk[IP]));
 		execute(disk[IP]);
+		dumpstack(5, tosp);
+		dumpstack(15, disk+(*link));
+
 	}
 }
