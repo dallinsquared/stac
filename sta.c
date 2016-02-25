@@ -370,9 +370,6 @@ void finit(){
 	COMPPRIM(POKE);
 	COMPPRIM(EXIT);
 	//computebranch
-	COLON(compbran);
-	COMPPRIM(AND);
-	COMPPRIM(EXIT);
 	//turn a nonzero value to -1, and keep zero values
 	COLON(logify);
 	COMPPRIM(LIT);
@@ -456,9 +453,7 @@ void finit(){
 	enter(comploop);
 	//colon compiler
 	COLON(colon);
-	COMPPRIM(LIT);
-	enter(0);
-	COMPPRIM(PEEK);
+	enter(here);
 	COMPPRIM(LIT);
 	enter(3);
 	COMPPRIM(DUP);
