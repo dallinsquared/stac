@@ -30,3 +30,14 @@
 
 # Debug files
 *.dSYM/
+
+# vim files
+*.swp
+
+# generated files
+
+getsizes
+primdefs.h
+primex
+sizedefs.h
+stac
