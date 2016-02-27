@@ -1,2 +1,2 @@
- immediate key word find exit @ !  pushnext branch drop >r <r dup swap rot + - * / >> << < > = emit atoi . & | ^ ~
-here , computebranch logical notbranch peekxt execute [ ] : 123 dup +
+immediate key word find exit @ ! pushnext branch drop >r <r dup swap rot + - * / >> << < > = emit atoi . & | ^ ~
+here , logical notbranch peekxt execute [ ] : 123 dup +
