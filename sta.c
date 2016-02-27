@@ -146,6 +146,11 @@ void intern(int x, int imm) {
 	*dict += slen/PACK + 1;
 	enter(imm);
 	enter(x);
+
+	mputs("interning ");
+	putnumstr(disk+w);
+	mputs(" @ ");
+	puts(itoa(*dict-1));
 }
 
 void execute(int x) {
@@ -355,18 +360,14 @@ void finit(){
 	COMPPRIM(EXIT);
 	//compile TOS
 	COLON(comptos);
-	COMPPRIM(LIT);
-	enter(0);
-	COMPPRIM(PEEK);
+	enter(here);
 	COMPPRIM(POKE);
-	COMPPRIM(LIT);
-	enter(0);
-	COMPPRIM(DUP);
-	COMPPRIM(PEEK);
+	enter(here);
 	COMPPRIM(LIT);
 	enter(1);
 	COMPPRIM(PLUS);
-	COMPPRIM(SWAP);
+	COMPPRIM(LIT);
+	enter(0);
 	COMPPRIM(POKE);
 	COMPPRIM(EXIT);
 	//computebranch
@@ -421,6 +422,15 @@ void finit(){
 	COMPPRIM(PDROP);
 	COMPPRIM(ATOI);
 	THEN(intnotimm); THEN(intfound);
+	COMPPRIM(LIT);
+	enter((int)'\n');
+	COMPPRIM(LIT);
+	enter((int)'k');
+	COMPPRIM(LIT);
+	enter((int)'o');
+	COMPPRIM(EMIT);
+	COMPPRIM(EMIT);
+	COMPPRIM(EMIT);
 	COMPPRIM(FROMR);
 	COMPPRIM(PDROP);
 	enter(intloop);
@@ -466,6 +476,9 @@ void finit(){
 	COMPPRIM(DUP);
 	COMPPRIM(PEEK);
 	COMPPRIM(LIT);
+	enter(PACK);
+	COMPPRIM(DIV);
+	COMPPRIM(LIT);
 	enter(1);
 	COMPPRIM(PLUS);
 	COMPPRIM(PLUS);
@@ -477,6 +490,8 @@ void finit(){
 	enter(comptos);
 	enter(comploop);
 	//cold start to setup interpreter
+	mputs("cs @ ");
+	puts(itoa(*dict));
 	int coldstart = *dict;
 	enter(DOCOL);
 	enter(intloop);
@@ -488,11 +503,6 @@ int main() {
 	pinit();
 	finit();
 	while(1) {
-		mputs("executing ");
-		puts(itoa(disk[IP]));
 		execute(disk[IP]);
-		dumpstack(5, tosp);
-		dumpstack(15, disk+(*link));
-
 	}
 }
