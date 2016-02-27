@@ -35,9 +35,11 @@
 *.swp
 
 # generated files
-
 getsizes
 primdefs.h
 primex
 sizedefs.h
 stac
+
+# fs files
+.nfs*
