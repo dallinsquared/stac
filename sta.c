@@ -146,7 +146,6 @@ void intern(int x, int imm) {
 	*dict += slen/PACK + 1;
 	enter(imm);
 	enter(x);
-
 	mputs("interning ");
 	putnumstr(disk+w);
 	mputs(" @ ");
@@ -161,11 +160,6 @@ void execute(int x) {
 		RPUSH ++IP;
 		IP = disk[w];
 		break;
-	case IMMEDIATE:
-		disk[*dict-2] = -1;
-		puts("IMMEDIATE");
-		NEXT;
-		break;
 	case KEY:
 		PUSH getchar();
 		NEXT;
@@ -177,7 +171,7 @@ void execute(int x) {
 		DROP;
 		disk[w] = slen;
 		PUSH w;
-		*dict = w;
+		*dict += slen/PACK + 1;
 		NEXT;
 		break;
 	case FIND:
@@ -188,8 +182,8 @@ void execute(int x) {
 		if (!w) {
 			PUSH 1;
 		} else {
-			TOS = w + 2 + ((dict[w+1])/PACK + 2);
-			w = dict[TOS-1];
+			TOS = w + 2 + ((disk[w+1])/PACK + 2);
+			w = disk[TOS-1];
 			PUSH w;
 		}
 		NEXT;
@@ -327,7 +321,8 @@ void execute(int x) {
 		NEXT;
 		break;
 	default: //this should be unreachable
-		puts("execute fallthrough!\n");
+		mputs("execute fallthrough: ");
+		puts(itoa(x));
 		dumpstack(3,tosp);
 		dumpstack(5,rsp);
 		dumpstack(15, disk+(*link));
@@ -341,11 +336,10 @@ void pinit() {
 	for(int i = DOCOL; i <= NOT; i++) {
 		switch(i){
 		case 0:
-		case 8:
 			enter(i);
 			break;
 		default:
-			intern(i, i == IMMEDIATE ? -1 : 0);
+			intern(i, 0);
 		}
 		primaddr[i] = *dict - 1;
 	}
@@ -370,7 +364,7 @@ void finit(){
 	enter(0);
 	COMPPRIM(POKE);
 	COMPPRIM(EXIT);
-	//computebranch
+	//compiletime lit
 	//turn a nonzero value to -1, and keep zero values
 	COLON(logify);
 	COMPPRIM(LIT);
@@ -395,7 +389,17 @@ void finit(){
 	COMPPRIM(LIT);
 	enter(127);
 	COMPPRIM(WORD);
+	COMPPRIM(DUP);
+	enter(comptos);
 	COMPPRIM(FIND);
+	enter(here);
+	COMPPRIM(LIT);
+	enter(1);
+	COMPPRIM(MINUS);
+	COMPPRIM(PEEK);
+	COMPPRIM(LIT);
+	enter(0);
+	COMPPRIM(POKE);
 	COMPPRIM(EXIT);
 	//execute xt
 	COLON(excut);
@@ -473,20 +477,10 @@ void finit(){
 	COMPPRIM(LIT);
 	enter(127);
 	COMPPRIM(WORD);
+	COMPPRIM(LIT);
+	enter(0);
 	COMPPRIM(DUP);
-	COMPPRIM(PEEK);
-	COMPPRIM(LIT);
-	enter(PACK);
-	COMPPRIM(DIV);
-	COMPPRIM(LIT);
-	enter(1);
-	COMPPRIM(PLUS);
-	COMPPRIM(PLUS);
-	COMPPRIM(LIT);
-	enter(0);
-	COMPPRIM(POKE);
-	COMPPRIM(LIT);
-	enter(0);
+	enter(comptos);
 	enter(comptos);
 	enter(comploop);
 	//cold start to setup interpreter
