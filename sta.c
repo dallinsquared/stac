@@ -336,6 +336,7 @@ void pinit() {
 	for(int i = DOCOL; i <= NOT; i++) {
 		switch(i){
 		case 0:
+		case 8:
 			enter(i);
 			break;
 		default:
@@ -365,6 +366,12 @@ void finit(){
 	COMPPRIM(POKE);
 	COMPPRIM(EXIT);
 	//compiletime lit
+	intern(DOCOL, -1);
+	int lit = *dict-1;
+	COMPPRIM(LIT);
+	COMPPRIM(LIT);
+	enter(comptos);
+	COMPPRIM(EXIT);
 	//turn a nonzero value to -1, and keep zero values
 	COLON(logify);
 	COMPPRIM(LIT);
