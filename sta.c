@@ -366,7 +366,7 @@ void finit(){
 	COMPPRIM(POKE);
 	COMPPRIM(EXIT);
 	//compiletime lit
-	intern(DOCOL, -1);
+	intern(DOCOL, 0);
 	int lit = *dict-1;
 	COMPPRIM(LIT);
 	COMPPRIM(LIT);
