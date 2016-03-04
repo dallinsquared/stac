@@ -2,3 +2,12 @@ key word find exit @ ! ['] branch drop >r <r dup swap rot + - * / >> << < > = em
 here , [lit] logical notbranch peekxt execute [ ] :
 
 : immediate [ -1 here 2 - ! ] -1 here 2 - ! exit [
+: [postpone] immediate peekxt drop , exit [
+: ; immediate ['] exit , [postpone] [ exit [
+: sq dup * ;
+: if immediate ['] notbranch , here 0 , ;
+: then immediate dup here swap - swap ! ;
+: else immediate ['] branch , here 0 , swap
+	dup here swap - 1 - swap ! ;
+: " immediate ['] [ key " , ] 
+

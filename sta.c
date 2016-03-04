@@ -25,7 +25,7 @@
 #define ELSE(BNAME) COMPPRIM(BRANCH);\
        	disk[BNAME]=(*dict)-BNAME;\
 	BNAME=*dict;enter(0)
-#define THEN(BNAME) disk[BNAME]=*dict-BNAME
+#define HEN(BNAME) disk[BNAME]=*dict-BNAME
 
 int disk[DSIZE] = {4, DSIZE-(RSSIZE+STSIZE+1), DSIZE-1, 0},
     *dict = disk, *rsp = disk+1, *tosp = disk+2,
@@ -285,6 +285,11 @@ void execute(int x) {
 		break;
 	case EMIT:
 		mputchar(TOS);
+		DROP;
+		NEXT;
+		break;
+	case PUTS:
+		putnumstr(disk+TOS);
 		DROP;
 		NEXT;
 		break;
