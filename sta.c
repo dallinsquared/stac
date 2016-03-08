@@ -487,7 +487,7 @@ void finit(){
 	COMPPRIM(DUP);
 	enter(comptos);
 	enter(comptos);
-	enter(comploop);
+	COMPPRIM(EXIT);
 	//cold start to setup interpreter
 	mputs("cs @ ");
 	puts(itoa(*dict));
