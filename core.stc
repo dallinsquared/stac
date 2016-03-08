@@ -11,5 +11,5 @@ here , [lit] logical notbranch peekxt execute [ ] :
 	dup here swap - swap 0 , ! ;
 : relink here 3 dup @ , ! ;
 : unlink 3 dup dup @ 0 ! @ @ swap ! ;
-: " immediate relink 0 , ['] [ key " , ] word ;
+: " relink 0 , ['] [ key " , ] word ;
 
