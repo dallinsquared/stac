@@ -3,7 +3,7 @@ here , [lit] logical notbranch peekxt execute [ ] [:]
 
 [:] immediate -1 here 2 - ! ] -1 here 2 - ! exit [
 [:] [postpone] ] immediate peekxt drop , exit [
-[:] : ] [:] ] 
+[:] : ] [:] ] [
 : ; immediate ['] exit , [postpone] [ exit [
 : sq dup * ;
 : if immediate ['] notbranch , here 0 , ;
@@ -12,8 +12,7 @@ here , [lit] logical notbranch peekxt execute [ ] [:]
 	dup here swap - swap 0 , ! ;
 : relink here 3 dup @ , ! ;
 : unlink 3 dup dup @ 0 ! @ @ swap ! ;
-: " immediate relink 0 , ['] [ key " , ] word ;
-: <build immediate ['] [postpone] : , ['] [postpone] immediate ,
+: " relink 0 , ['] [ key " , ] word ;
+: <build immediate [postpone] immediate [']  [:] ,
 	[lit] here 0 , ['] , , ;
 : does> immediate [postpone] ; here swap ! 0 , ['] <r , ;
-

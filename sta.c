@@ -29,7 +29,7 @@
 
 int disk[DSIZE] = {4, DSIZE-(RSSIZE+STSIZE+1), DSIZE-1, 0},
     *dict = disk, *rsp = disk+1, *tosp = disk+2,
-    *link = disk+3, w, IP, primaddr[NOT+1];
+    *link = disk+3, w, IP, primaddr[NOT+1], cs;
 
 char itoabuf[10] = {'\0'};
 
@@ -333,15 +333,16 @@ void execute(int x) {
 		dumpstack(15, disk+(*link));
 		mputs("IP = ");
 		puts(itoa(IP));
-		exit(1);
+		*rsp = DSIZE-(RSSIZE+STSIZE+1);
+		IP = cs;
 	}
 }
 
 void pinit() {
 	for(int i = DOCOL; i <= NOT; i++) {
 		switch(i){
-		case 0:
-		case 8:
+		case DOCOL:
+		case LIT:
 			enter(i);
 			break;
 		default:
@@ -496,6 +497,7 @@ void finit(){
 	enter(intloop);
 
 	IP=coldstart;
+	cs=coldstart;
 }
 
 int main() {
