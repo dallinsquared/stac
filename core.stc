@@ -1,10 +1,13 @@
-key word find exit @ ! ['] branch drop >r <r dup swap rot + - * / >> << < > = emit emits atoi . & | ^ ~
-here , [lit] logical notbranch peekxt execute [ ] [:]
+key word find exit @ ! lit branch drop >r <r dup swap rot + - * / >> << < > = emit emits atoi . & | ^ ~
+here , logical notbranch peekxt execute [ ] [:]
 
 [:] immediate -1 here 2 - ! ] -1 here 2 - ! exit [
 [:] [postpone] ] immediate peekxt drop , exit [
 [:] : ] [:] ] [
-: ; immediate ['] exit , [postpone] [ exit [
+: ' peekxt drop exit [
+: [lit] immediate lit [ ' lit , ] , exit [
+: ['] immediate [postpone] [lit] ' , exit [
+: ; immediate  ['] exit , [postpone] [ exit [
 : sq dup * ;
 : if immediate ['] notbranch , here 0 , ;
 : then immediate dup here swap - swap ! ;
@@ -12,7 +15,7 @@ here , [lit] logical notbranch peekxt execute [ ] [:]
 	dup here swap - swap 0 , ! ;
 : relink here 3 dup @ , ! ;
 : unlink 3 dup dup @ 0 ! @ @ swap ! ;
-: " relink 0 , ['] [ key " , ] word ;
+: " relink 0 , [lit] [ key " , ] word ;
 : <build immediate [postpone] immediate [']  [:] ,
 	[lit] here 0 , ['] , , ;
 : does> immediate [postpone] ; here swap ! 0 , ['] <r , ;

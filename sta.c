@@ -294,10 +294,13 @@ void execute(int x) {
 		NEXT;
 		break;
 	case ATOI:
-		TOS = (int) strtol((char *)(disk+TOS+1),&s, 10);
-		if(s == (char *)(disk+TOS)){ //this might fail, if so, we can cast the disk pointer to a char *
+		w = TOS+1;
+		TOS = (int) strtol((char *)(disk+w),&s, 10);
+		if(s == (char *)(disk+w)){ //this might fail, if so, we can cast the disk pointer to a char *
 			DROP;
-			puts("NO NUMBER FOUND");
+			mputs("NO NUMBER FOUND:");
+			putnumstr(disk+w);
+			puts("");
 		}
 		NEXT;
 		break;
@@ -342,7 +345,7 @@ void pinit() {
 	for(int i = DOCOL; i <= NOT; i++) {
 		switch(i){
 		case DOCOL:
-		case LIT:
+		case PUSNXT:
 			enter(i);
 			break;
 		default:
@@ -370,13 +373,6 @@ void finit(){
 	COMPPRIM(LIT);
 	enter(0);
 	COMPPRIM(POKE);
-	COMPPRIM(EXIT);
-	//compiletime lit
-	intern(DOCOL, 0);
-	int lit = *dict-1;
-	COMPPRIM(LIT);
-	COMPPRIM(LIT);
-	enter(comptos);
 	COMPPRIM(EXIT);
 	//turn a nonzero value to -1, and keep zero values
 	COLON(logify);
