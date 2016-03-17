@@ -299,7 +299,7 @@ void execute(int x) {
 		if(s == (char *)(disk+w)){ //this might fail, if so, we can cast the disk pointer to a char *
 			DROP;
 			mputs("NO NUMBER FOUND:");
-			putnumstr(disk+w);
+			putnumstr(disk+w-1);
 			puts("");
 		}
 		NEXT;

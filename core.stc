@@ -5,17 +5,22 @@ here , logical notbranch peekxt execute [ ] [:]
 [:] [postpone] ] immediate peekxt drop , exit [
 [:] : ] [:] ] [
 : ' peekxt drop exit [
-: [lit] immediate lit [ ' lit , ] , exit [
-: ['] immediate [postpone] [lit] ' , exit [
+: ,lit lit [ ' lit , ] , exit [
+: ['] immediate ,lit ' , exit [
 : ; immediate  ['] exit , [postpone] [ exit [
 : sq dup * ;
 : if immediate ['] notbranch , here 0 , ;
 : then immediate dup here swap - swap ! ;
-: else immediate ['] branch , here swap
-	dup here swap - swap 0 , ! ;
+: else immediate ['] branch , here swap 0 ,
+	dup here swap - swap ! ;
 : relink here 3 dup @ , ! ;
 : unlink 3 dup dup @ 0 ! @ @ swap ! ;
-: " relink 0 , [lit] [ key " , ] word ;
+: kword key word ;
+: [kword] immediate kword ;
+: " relink 0 , ,lit [ key " , ] word ;
 : <build immediate [postpone] immediate [']  [:] ,
-	[lit] here 0 , ['] , , ;
+	,lit here 0 , ['] , , ;
 : does> immediate [postpone] ; here swap ! 0 , ['] <r , ;
+: ping lit [ here 0 , ] emits exit [ here swap ! ] [kword] "ping
+" [
+: .toexit [ here 1 + , here 0 , ] dup @ dup . ['] exit = if exit then ping 1 + <r drop [ , ] [
