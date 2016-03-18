@@ -1,4 +1,4 @@
-key word find exit @ ! lit branch drop >r <r dup swap rot + - * / >> << < > = emit emits atoi . & | ^ ~
+key word find exit @ ! lit pushnext branch drop >r <r dup swap rot + - * / >> << < > = emit emits atoi . & | ^ ~
 here , logical notbranch peekxt execute [ ] [:]
 
 [:] immediate -1 here 2 - ! ] -1 here 2 - ! exit [
@@ -12,7 +12,7 @@ here , logical notbranch peekxt execute [ ] [:]
 : if immediate ['] notbranch , here 0 , ;
 : then immediate dup here swap - swap ! ;
 : else immediate ['] branch , here swap 0 ,
-	dup here swap - swap ! ;
+	dup here swap 1 + - swap ! ;
 : relink here 3 dup @ , ! ;
 : unlink 3 dup dup @ 0 ! @ @ swap ! ;
 : kword key word ;

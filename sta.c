@@ -345,7 +345,7 @@ void pinit() {
 	for(int i = DOCOL; i <= NOT; i++) {
 		switch(i){
 		case DOCOL:
-		case PUSNXT:
+		//case PUSNXT:
 			enter(i);
 			break;
 		default:
@@ -479,6 +479,7 @@ void finit(){
 	COMPPRIM(LIT);
 	enter(127);
 	COMPPRIM(WORD);
+	COMPPRIM(PDROP);
 	COMPPRIM(LIT);
 	enter(0);
 	COMPPRIM(DUP);
