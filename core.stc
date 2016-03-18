@@ -23,5 +23,5 @@ here , logical notbranch peekxt execute [ ] [:]
 : does> immediate [postpone] ; here swap ! 0 , ['] <r , ;
 : ping lit [ here 0 , ] emits exit [ here swap ! ] [kword] "ping
 " [
-: .toexit [ here 1 + , here 0 , ] dup @ dup . ['] exit = if exit then ping 1 + <r drop [ , ] [
 : n dup @ . 1 + ;
+: .toexit [ here 1 + dup , 0 , ] n dup ['] exit = if exit then ping 1 + <r drop  ; 
