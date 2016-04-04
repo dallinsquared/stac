@@ -25,7 +25,8 @@
 #define ELSE(BNAME) COMPPRIM(BRANCH);\
        	disk[BNAME]=(*dict)-BNAME;\
 	BNAME=*dict;enter(0)
-#define THEN(BNAME) disk[BNAME]=*dict-BNAME
+#define THEN(BNAME) disk[BNAME]=*dict-BNAME-1 // the reason the minus one isn't necessary in the else,
+					//is we do it an instruction early, when dict points to the branch offset
 
 int disk[DSIZE] = {4, DSIZE-(RSSIZE+STSIZE+1), DSIZE-1, 0},
     *dict = disk, *rsp = disk+1, *tosp = disk+2,
@@ -211,7 +212,7 @@ void execute(int x) {
 		NEXT;
 		break;
 	case BRANCH:
-		TORS += disk[TORS];
+		TORS += disk[TORS] + 1; //was off by one
 		NEXT;
 		break;
 	case PDROP:

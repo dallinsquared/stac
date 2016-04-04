@@ -10,11 +10,11 @@ here , logical notbranch peekxt execute [ ] [:]
 : ; immediate  ['] exit , [postpone] [ exit [
 : sq dup * ;
 : skipcell here 0 , ;
-: minus! 
+: backpatch dup here swap - 1 - swap ! ;
 : if immediate ['] notbranch , skipcell ;
-: then immediate dup here swap - swap ! ;
-: else immediate ['] branch , skipcell swap 
-	dup here swap 1 + - swap ! ;
+: then immediate backpatch ;
+: else immediate ['] branch , skipcell swap
+	backpatch ;
 : relink here 3 dup @ , ! ;
 : unlink 3 dup dup @ 0 ! @ @ swap ! ;
 : kword key word ;
@@ -27,3 +27,5 @@ here , logical notbranch peekxt execute [ ] [:]
 " [
 : n dup @ . 1 + ;
 : .toexit [ here 1 + dup , 0 , ] n dup ['] exit = if exit then ping <r drop  ; 
+
+: ift dup 5 = [ ' notbranch , 2 , ] sq [ ' branch , 4 , ] 2 + . ;
