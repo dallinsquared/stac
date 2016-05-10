@@ -3,12 +3,15 @@ here , logical notbranch peekxt execute [ ] [:]
 
 [:] immediate -1 here 2 - ! ] -1 here 2 - ! exit [
 [:] [postpone] ] immediate peekxt drop , exit [
-[:] : ] [:] ] [
+[:] rdrop ] <r <r drop >r exit [
+[:] : ] [:] rdrop ] [
 : ' peekxt drop exit [
 : ,lit lit [ ' lit , ] , exit [
 : ['] immediate ,lit ' , exit [
-: ; immediate  ['] exit , [postpone] [ exit [
+: ; immediate  ['] exit , rdrop [postpone] [ exit [
 : sq dup * ;
+: not 0 = ;
+: peep dup . ;
 : skipcell here 0 , ;
 : backpatch dup here swap - 1 - swap ! ;
 : if immediate ['] notbranch , skipcell ;
@@ -19,13 +22,14 @@ here , logical notbranch peekxt execute [ ] [:]
 : unlink 3 dup dup @ 0 ! @ @ swap ! ;
 : kword key word ;
 : [kword] immediate kword ;
-: " relink 0 , ,lit [ key " , ] word ;
+: " relink 0 , lit [ key " , ] word ;
+: ;; lit [ key 
+ , ] word 0 ! ;
 : <build immediate [postpone] immediate [']  [:] ,
 	,lit here 0 , ['] , , ;
 : does> immediate [postpone] ; here swap ! 0 , ['] <r , ;
-: ping lit [ here 0 , ] emits exit [ here swap ! ] [kword] "ping
+: ping lit [ skipcell ] emits exit [ here swap ! ] [kword] "ping
 " [
 : n dup @ . 1 + ;
-: .toexit [ here 1 + dup , 0 , ] n dup ['] exit = if exit then ping <r drop  ; 
-
-: ift dup 5 = [ ' notbranch , 2 , ] sq [ ' branch , 4 , ] 2 + . ;
+: do immediate here 1 + dup , 0 , ;
+: while immediate [postpone] if ['] rdrop peep , swap , [postpone] then ; 

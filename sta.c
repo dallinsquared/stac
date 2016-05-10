@@ -132,6 +132,16 @@ void dumpstack(int i, int *sp){
 	}
 	puts(" ]");
 }
+
+void stat(){
+	mputs("Dict = ");
+	puts(itoa(*dict));
+	mputs("rstack = ");
+	puts(itoa(*rsp - (DSIZE-(RSSIZE+STSIZE+1))));
+	mputs("dstack = ");
+	puts(itoa(DSIZE-*tosp-1));
+}
+
 void enter(int x){
 	disk[(*dict)++] = x;
 }
@@ -154,8 +164,9 @@ void intern(int x, int imm) {
 }
 
 void execute(int x) {
+	int op = disk[x];
 	char *s;
-	switch (x) {
+	switch (op) {
 	case DOCOL:
 		w = ++IP;
 		RPUSH ++IP;
@@ -311,7 +322,7 @@ void execute(int x) {
 		NEXT;
 		break;
 	case AND:
-		NTOS &= TOS;
+	       	NTOS &= TOS;
 		DROP;
 		NEXT;
 		break;
@@ -331,12 +342,13 @@ void execute(int x) {
 		break;
 	default: //this should be unreachable
 		mputs("execute fallthrough: ");
-		puts(itoa(x));
+		puts(itoa(op));
 		dumpstack(3,tosp);
 		dumpstack(5,rsp);
 		dumpstack(15, disk+(*link));
 		mputs("IP = ");
 		puts(itoa(IP));
+		stat();
 		*rsp = DSIZE-(RSSIZE+STSIZE+1);
 		IP = cs;
 	}
@@ -421,6 +433,14 @@ void finit(){
 	COMPPRIM(EXIT);
 	//interpret
 	intern(DOCOL, -1);
+	COMPPRIM(FROMR);
+	COMPPRIM(FROMR);
+	COMPPRIM(FROMR);
+	COMPPRIM(PDROP);
+	COMPPRIM(PDROP);
+	COMPPRIM(PDROP);
+	enter(*dict+1);
+	enter(0);
 	int intloop = *dict-1;
 	enter(peekxt);
 	COMPPRIM(LIT);
@@ -445,7 +465,16 @@ void finit(){
 	COMPPRIM(PDROP);
 	enter(intloop);
 	//compile
-	COLON(comploop);
+	intern(DOCOL, 0);
+	COMPPRIM(FROMR);
+	COMPPRIM(FROMR);
+	COMPPRIM(FROMR);
+	COMPPRIM(PDROP);
+	COMPPRIM(PDROP);
+	COMPPRIM(PDROP);
+	enter(*dict+1);
+	enter(0);
+	int comploop = *dict-1;
 	enter(peekxt);
 	COMPPRIM(DUP);
 	COMPPRIM(LIT);
@@ -502,6 +531,11 @@ int main() {
 	pinit();
 	finit();
 	while(1) {
-		execute(disk[IP]);
+		//mputs("ip = ");
+		//mputs(itoa(disk[IP]));
+		execute(IP);
+		//mputs(" rstack = ");
+		//puts(itoa(*rsp - (DSIZE-(RSSIZE+STSIZE+1))));
+		//stat();
 	}
 }
