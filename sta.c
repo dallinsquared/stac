@@ -308,9 +308,9 @@ void execute(int x) {
 	case ATOI:
 		w = TOS+1;
 		TOS = (int) strtol((char *)(disk+w),&s, 10);
-		if(s == (char *)(disk+w)){ //this might fail, if so, we can cast the disk pointer to a char *
+		if(s == (char *)(disk+w)){
 			DROP;
-			mputs("NO NUMBER FOUND:");
+			mputs("NO NUMBER FOUND: ");
 			putnumstr(disk+w-1);
 			puts("");
 		}

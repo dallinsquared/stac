@@ -25,9 +25,12 @@ here , logical notbranch peekxt execute [ ] [:]
 : " relink 0 , lit [ key " , ] word ;
 : ;; lit [ key 
  , ] word 0 ! ;
-: <build immediate [postpone] immediate [']  [:] ,
-	,lit here 0 , ['] , , ;
-: does> immediate [postpone] ; here swap ! 0 , ['] <r , ;
+: <build immediate [postpone] immediate ['] [:] ,
+	,lit skipcell ['] , , ;
+: does> immediate ['] exit , here swap ! 0 , ['] <r , ;
+: var <build , does> ;
+: constant <build , does> @ ;
+: string <build lit [ key ; , ] word does> emits ;
 : ping lit [ skipcell ] emits exit [ here swap ! ] [kword] "ping
 " [
 : n dup @ . 1 + ;
