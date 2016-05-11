@@ -1,38 +1,61 @@
-key word find exit @ ! lit pushnext branch drop >r <r dup swap rot + - * / >> << < > = emit emits atoi . & | ^ ~
+key word find exit @ ! lit pushnext branch drop >r r> dup swap rot + - * / >> << < > = emit emits atoi . & | ^ ~
 here , logical notbranch peekxt execute [ ] [:]
 
 [:] immediate -1 here 2 - ! ] -1 here 2 - ! exit [
 [:] [postpone] ] immediate peekxt drop , exit [
-[:] rdrop ] <r <r drop >r exit [
+[:] rdrop ] r> r> drop >r exit [
 [:] : ] [:] rdrop ] [
 : ' peekxt drop exit [
 : ,lit lit [ ' lit , ] , exit [
 : ['] immediate ,lit ' , exit [
 : ; immediate  ['] exit , rdrop [postpone] [ exit [
-: sq dup * ;
-: not 0 = ;
-: peep dup . ;
+: ;; lit [ key 
+ , ] word 0 ! ;
 : skipcell here 0 , ;
+: !here here swap ! ;
 : backpatch dup here swap - 1 - swap ! ;
+
+;; control structures
+
 : if immediate ['] notbranch , skipcell ;
 : then immediate backpatch ;
 : else immediate ['] branch , skipcell swap
 	backpatch ;
+
+: do immediate here 1 + dup , 0 , ;
+: while immediate [postpone] if ['] rdrop , swap , [postpone] then ; 
+
+;; data structures
+
+	;; adding and removing words from dictionary
 : relink here 3 dup @ , ! ;
 : unlink 3 dup dup @ 0 ! @ @ swap ! ;
+
+	;; utilities for character delineation 
+: [kword] immediate ,lit key , ['] word , ;  
 : kword key word ;
-: [kword] immediate kword ;
-: " relink 0 , lit [ key " , ] word ;
-: ;; lit [ key 
- , ] word 0 ! ;
-: <build immediate [postpone] immediate ['] [:] ,
+
+	;; basic (named) closures
+: <builds immediate [postpone] immediate ['] [:] ,
 	,lit skipcell ['] , , ;
-: does> immediate ['] exit , here swap ! 0 , ['] <r , ;
-: var <build , does> ;
-: constant <build , does> @ ;
-: string <build lit [ key ; , ] word does> emits ;
-: ping lit [ skipcell ] emits exit [ here swap ! ] [kword] "ping
-" [
+: does> immediate ['] exit , here swap ! 0 , ['] r> , ;
+: var <builds , does> ;
+: constant <builds , does> @ ;
+
+	;; strings
+: " relink 0 , [kword] " ;
+: string <builds lit [ key ; , ] word
+	does> emits ;
+
+;; debugging tools
+
+: peep dup . ;
+: ping lit [ skipcell ] emits exit [ !here kword "ping
+"
 : n dup @ . 1 + ;
-: do immediate here 1 + dup , 0 , ;
-: while immediate [postpone] if ['] rdrop peep , swap , [postpone] then ; 
+
+;; core library
+
+: not 0 = ;
+: sq dup * ;
+
