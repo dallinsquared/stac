@@ -27,9 +27,14 @@ here , logical notbranch peekxt execute [ ] [:]
 
 ;; data structures
 
+: add swap dup @ rot + swap ! ;
+: subtract swap dup @ rot - swap ! ;
+: allot 0 swap add ;
+
 	;; adding and removing words from dictionary
 : relink here 3 dup @ , ! ;
 : unlink 3 dup dup @ 0 ! @ @ swap ! ;
+
 
 	;; utilities for character delineation 
 : [kword] immediate ,lit key , ['] word , ;  
@@ -39,13 +44,26 @@ here , logical notbranch peekxt execute [ ] [:]
 : <builds immediate [postpone] immediate ['] [:] ,
 	,lit skipcell ['] , , ;
 : does> immediate ['] exit , here swap ! 0 , ['] r> , ;
+
 : var <builds , does> ;
 : constant <builds , does> @ ;
+: array <builds allot does> + ;
+: stack <builds 0 , allot does> ;
+: upush swap dup dup @ + 1 + rot swap ! 1 add ;
+: upop dup dup @ + 1 + @ swap 1 subtract ; 
+
+	;; anonymous functions without and with link headers
+	;; with headers for standalone use, without in datastructures.
+: :_ skipcell rdrop ] ;
+: :- relink rdrop :_ ;
 
 	;; strings
 : " relink 0 , [kword] " ;
 : string <builds lit [ key ; , ] word
-	does> emits ;
+	does> emits ; 
+
+: cr lit [ key 
+ , ] emit ;
 
 ;; debugging tools
 
